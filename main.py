@@ -1,11 +1,11 @@
 import os
-from jobspy import scrape_jobs
-from sqlalchemy import create_engine
-from dotenv import load_dotenv
-from pandas import DataFrame
-from prefect import flow, task
-from prefect_dbt import PrefectDbtRunner, PrefectDbtSettings
 
+from dotenv import load_dotenv
+from jobspy import scrape_jobs
+from pandas import DataFrame
+from prefect import flow, runtime, task
+from prefect_dbt import PrefectDbtRunner, PrefectDbtSettings
+from sqlalchemy import create_engine
 
 # Load environment variables
 load_dotenv()
@@ -20,7 +20,10 @@ SCHEMA_NAME = "jobspy"
 
 
 @task()
-def find_and_process(title: str, location: str) -> DataFrame:
+def find_and_process(
+    title: str,
+    location: str,
+) -> DataFrame:
     jobs = scrape_jobs(
         site_name=["indeed", "linkedin", "google"],  # "zip_recruiter",
         search_term=title,
@@ -31,6 +34,10 @@ def find_and_process(title: str, location: str) -> DataFrame:
         country_indeed="canada",
         linkedin_fetch_description=True,
     )
+    jobs["run_name"] = runtime.flow_run.name
+
+    print(f"we are running flow {runtime.flow_run.name}")
+
     print(f"Found {len(jobs)} jobs")
     print(jobs.head())
     write_jobs(jobs)
