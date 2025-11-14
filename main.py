@@ -73,6 +73,9 @@ def run_dbt():
         )
     ).invoke(cli_args)
 
+@flow()
+def process_jobs(profile: str )
+
 
 @flow()
 def get_jobs(
@@ -82,6 +85,7 @@ def get_jobs(
     thing = find_and_process(title=title, location=location, profile=profile)
     run_dbt()
     return thing
+
 
 
 if __name__ == "__main__":
