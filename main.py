@@ -20,10 +20,7 @@ SCHEMA_NAME = "jobspy"
 
 
 @task()
-def find_and_process(
-    title: str,
-    location: str,
-) -> DataFrame:
+def find_and_process(title: str, location: str, profile: str) -> DataFrame:
     jobs = scrape_jobs(
         site_name=["indeed", "linkedin", "google"],  # "zip_recruiter",
         search_term=title,
@@ -34,7 +31,8 @@ def find_and_process(
         country_indeed="canada",
         linkedin_fetch_description=True,
     )
-    jobs["run_name"] = runtime.flow_run.name
+    jobs["sys_run_name"] = runtime.flow_run.name
+    jobs["sys_profile"] = profile
 
     print(f"we are running flow {runtime.flow_run.name}")
 
@@ -77,9 +75,11 @@ def run_dbt():
 
 
 @flow()
-def get_jobs(title: str = "data engineer", location: str = "Toronto, On"):
+def get_jobs(
+    title: str = "data engineer", location: str = "Toronto, On", profile: str = "Slava"
+):
     print(f"seraching for {title} jobs into {location}")
-    thing = find_and_process(title=title, locatigon=location)
+    thing = find_and_process(title=title, location=location, profile=profile)
     run_dbt()
     return thing
 

@@ -1,0 +1,26 @@
+name: job-search-project
+prefect-version: 3.0.0
+
+build: null
+
+push: null
+
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: /home/slava/Documents/projects/job_searcher_2
+
+deployments:
+  - name: job-search-deployment
+    version: 1.0.0
+    tags: ["jobs", "etl"]
+    description: Job search and processing flow
+    entrypoint: main.py:get_jobs
+    parameters:
+      title: "data engineer"
+      location: "Toronto, ON"
+    work_pool:
+      name: dev-pool
+      work_queue_name: default
+    schedules:
+      - cron: "0 9 * * *"
+        active: true
