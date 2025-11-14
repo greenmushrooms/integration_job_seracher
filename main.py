@@ -79,7 +79,7 @@ def run_dbt():
 @flow()
 def get_jobs(title: str = "data engineer", location: str = "Toronto, On"):
     print(f"seraching for {title} jobs into {location}")
-    thing = find_and_process(title=title, location=location)
+    thing = find_and_process(title=title, locatigon=location)
     run_dbt()
     return thing
 
