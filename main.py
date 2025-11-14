@@ -65,17 +65,22 @@ def write_jobs(jobs: DataFrame) -> None:
 
 @task()
 def run_dbt():
+    vars_json = f'{{"run_name": "{runtime.flow_run.name}"}}'
+
+    cli_args = ["build", "--vars", vars_json]
+
     PrefectDbtRunner(
         settings=PrefectDbtSettings(
-            project_dir="data__job_searcher", profiles_dir="examples/run_dbt"
+            project_dir="data__job_searcher", profiles_dir="data__job_searcher"
         )
-    ).invoke(["build"])
+    ).invoke(cli_args)
 
 
 @flow()
 def get_jobs(title: str = "data engineer", location: str = "Toronto, On"):
     print(f"seraching for {title} jobs into {location}")
     thing = find_and_process(title=title, location=location)
+    run_dbt()
     return thing
 
 
