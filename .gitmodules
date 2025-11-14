@@ -1,0 +1,3 @@
+[submodule "data__job_searcher"]
+	path = data__job_searcher
+	url = https://github.com/greenmushrooms/data__job_searcher.git

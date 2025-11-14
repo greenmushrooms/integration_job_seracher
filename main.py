@@ -50,7 +50,7 @@ def write_jobs(jobs: DataFrame) -> None:
     )
     engine = create_engine(connection_string)
 
-    table_name = "jobs"
+    table_name = "import_jobs"
 
     jobs.to_sql(
         name=table_name,
@@ -66,7 +66,9 @@ def write_jobs(jobs: DataFrame) -> None:
 @task()
 def run_dbt():
     PrefectDbtRunner(
-        settings=PrefectDbtSettings(project_dir="test", profiles_dir="examples/run_dbt")
+        settings=PrefectDbtSettings(
+            project_dir="data__job_searcher", profiles_dir="examples/run_dbt"
+        )
     ).invoke(["build"])
 
 
