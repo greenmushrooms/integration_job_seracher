@@ -7,7 +7,7 @@ push: null
 
 pull:
   - prefect.deployments.steps.set_working_directory:
-      directory: /home/slava/Documents/projects/job_searcher_2
+      directory: /opt/prefect/flows/job_searcher_2
 
 deployments:
   - name: job-search-deployment
