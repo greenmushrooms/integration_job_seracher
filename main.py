@@ -115,7 +115,7 @@ def run_dbt():
 @flow()
 def process_jobs(profile: str):
     resume = load_resume(profile)
-    jobs_df = load_jobs(profile, limit=1)
+    jobs_df = load_jobs(profile, limit=30)
 
     print(f"Loaded resume: {len(resume)} characters")
     print(f"Loaded {len(jobs_df)} jobs\n")
