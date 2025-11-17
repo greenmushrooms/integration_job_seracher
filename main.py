@@ -208,7 +208,7 @@ def notify_top_jobs(min_score: float = 7.5):
     run_name = runtime.flow_run.name
     print(f"Notifying top jobs for run: {run_name}")
 
-    jobs = get_top_jobs("graceful-chowchow", min_score)
+    jobs = get_top_jobs(run_name, min_score)
 
     if jobs:
         send_telegram_notifications(jobs, run_name)
@@ -222,12 +222,12 @@ def notify_top_jobs(min_score: float = 7.5):
 def get_jobs(
     title: str = "data engineer", location: str = "Toronto, On", profile: str = "Slava"
 ):
-    # print(f"searching for {title} jobs in {location}")
-    # thing = find_and_process(title=title, location=location, profile=profile)
-    # run_dbt()
-    # process_jobs(profile)
+    print(f"searching for {title} jobs in {location}")
+    thing = find_and_process(title=title, location=location, profile=profile)
+    run_dbt()
+    process_jobs(profile)
     notify_top_jobs(min_score=7.5)
-    # return thing
+    return thing
 
 
 if __name__ == "__main__":
