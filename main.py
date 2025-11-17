@@ -137,7 +137,9 @@ def run_dbt():
 
 
 @flow()
-def process_jobs(profile: str):
+def process_jobs(profile: str, run_name: str = None):
+    sys_run_name = run_name or runtime.flow_run.name
+
     resume = load_resume(profile)
     jobs_df = load_jobs(profile, limit=40)
 
@@ -146,7 +148,7 @@ def process_jobs(profile: str):
 
     evaluator = ClaudeJobEvaluator()
     results = evaluator.evaluate(resume, jobs_df)
-    results["sys_run_name"] = runtime.flow_run.name
+    results["sys_run_name"] = sys_run_name  # Use consistent run name
     results["sys_profile"] = profile
 
     write_to_db(results, "public", "evaluated_jobs")
@@ -202,15 +204,15 @@ def send_telegram_notifications(jobs, run_name: str):
 
 
 @flow()
-def notify_top_jobs(min_score: float = 7.5):
+def notify_top_jobs(min_score: float = 7.5, run_name: str = None):
     """Flow to retrieve and send top job matches via SMS"""
-    run_name = runtime.flow_run.name
-    print(f"Notifying top jobs for run: {run_name}")
+    sys_run_name = run_name or runtime.flow_run.name
+    print(f"Notifying top jobs for run: {sys_run_name}")
 
-    jobs = get_top_jobs(run_name, min_score)
+    jobs = get_top_jobs(sys_run_name, min_score)
 
     if jobs:
-        send_telegram_notifications(jobs, run_name)
+        send_telegram_notifications(jobs, sys_run_name)
     else:
         print(f"No jobs found with score > {min_score}")
 
@@ -221,11 +223,11 @@ def notify_top_jobs(min_score: float = 7.5):
 def get_jobs(
     title: str = "data engineer", location: str = "Toronto, On", profile: str = "Slava"
 ):
-    print(f"searching for {title} jobs in {location}")
+    parent_run_name = runtime.flow_run.name
     thing = find_and_process(title=title, location=location, profile=profile)
     run_dbt()
-    process_jobs(profile)
-    notify_top_jobs(min_score=7.5)
+    process_jobs(profile, parent_run_name)  # Pass parent run name
+    notify_top_jobs(min_score=7.5, run_name=parent_run_name)  # Pass parent run name
     return thing
 
 
