@@ -58,7 +58,7 @@ def find_and_process(title: str, location: str, profile: str) -> DataFrame:
         search_term=title,
         google_search_term="Data engineer jobs near Toronto, Ontario since yesterday",
         location=location,
-        results_wanted=20,
+        results_wanted=60,
         hours_old=72,
         country_indeed="canada",
         linkedin_fetch_description=True,
@@ -139,7 +139,7 @@ def run_dbt():
 @flow()
 def process_jobs(profile: str):
     resume = load_resume(profile)
-    jobs_df = load_jobs(profile, limit=30)
+    jobs_df = load_jobs(profile, limit=40)
 
     print(f"Loaded resume: {len(resume)} characters")
     print(f"Loaded {len(jobs_df)} jobs\n")
@@ -168,9 +168,8 @@ def get_top_jobs(run_name: str, min_score: float = 7.5):
         INNER JOIN public.jobspy_jobs as j
             ON e.job_id = j.id
         WHERE e.sys_run_name = :run_name
-         -- AND e.avg_score > :min_score
+          AND e.avg_score > :min_score
         ORDER BY e.avg_score DESC
-        limit 1
     """)
 
     with ENGINE.connect() as conn:
