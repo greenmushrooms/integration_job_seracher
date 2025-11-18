@@ -9,7 +9,16 @@ pull:
   - prefect.deployments.steps.set_working_directory:
       directory: "{{ clone-step.directory }}"
   - prefect.deployments.steps.run_shell_script:
-      script: uv sync
+      script: |
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        echo "Looking for pyproject.toml..."
+        find . -name "pyproject.toml"
+        cd "{{ clone-step.directory }}"
+        echo "After cd, current directory: $(pwd)"
+        ls -la
+        uv sync
 deployments:
   - name: job-search-deployment
     version: 1.0.0
