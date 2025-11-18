@@ -6,7 +6,7 @@ import anthropic
 import pandas as pd
 from prefect.blocks.system import Secret
 
-DB_HOST = Secret.load("job-searcher--anthropic-api-key").get()
+ANTHROPIC_API_KEY = Secret.load("job-searcher--anthropic-api-key", _sync=True).get()
 
 
 class ClaudeJobEvaluator:

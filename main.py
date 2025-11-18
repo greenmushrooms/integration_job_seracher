@@ -15,13 +15,13 @@ from agent_eval import ClaudeJobEvaluator
 from helper import format_job_message_telegram, format_summary_message_telegram
 
 # Get database credentials
-DB_HOST = Secret.load("job-searcher--database-host").get()
-DB_PORT = Secret.load("job-searcher--database-port").get()
-DB_NAME = Secret.load("job-searcher--database-name").get()
-DB_USER = Secret.load("job-searcher--database-user").get()
-DB_PASSWORD = Secret.load("job-searcher--database-password").get()
-TELEGRAM_BOT_TOKEN = Secret.load("job-searcher--telegram-bot-token").get()
-TELEGRAM_CHAT_ID = Secret.load("job-searcher--telegram-chat-id").get()
+DB_HOST = Secret.load("job-searcher--database-host", _sync=True).get()
+DB_PORT = Secret.load("job-searcher--database-port", _sync=True).get()
+DB_NAME = Secret.load("job-searcher--database-name", _sync=True).get()
+DB_USER = Secret.load("job-searcher--database-user", _sync=True).get()
+DB_PASSWORD = Secret.load("job-searcher--database-password", _sync=True).get()
+TELEGRAM_BOT_TOKEN = Secret.load("job-searcher--telegram-bot-token", _sync=True).get()
+TELEGRAM_CHAT_ID = Secret.load("job-searcher--telegram-chat-id", _sync=True).get()
 
 CONNECTION_STRING = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
