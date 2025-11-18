@@ -1,6 +1,5 @@
 name: job-search-project
 prefect-version: 3.0.0
-
 build: null
 push: null
 pull:
@@ -8,10 +7,11 @@ pull:
       id: clone-step
       repository: https://github.com/greenmushrooms/integration_job_seracher.git
       branch: main
-  - prefect.deployments.steps.pip_install_requirements:
+  - prefect.deployments.steps.run_shell_script:
+      id: uv-sync
+      script: uv sync
       directory: "{{ clone-step.directory }}"
-      requirements_file: requirements.txt
-      stream_output: false
+      stream_output: true
 
 deployments:
   - name: job-search-deployment
