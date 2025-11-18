@@ -3,7 +3,15 @@ prefect-version: 3.0.0
 
 build: null
 push: null
-pull: null # No pulling needed for local!
+pull:
+  - prefect.deployments.steps.git_clone:
+      id: clone-step
+      repository: https://github.com/greenmushrooms/integration_job_seracher.git
+      branch: main
+  - prefect.deployments.steps.pip_install_requirements:
+      directory: "{{ clone-step.directory }}"
+      requirements_file: requirements.txt
+      stream_output: false
 
 deployments:
   - name: job-search-deployment
