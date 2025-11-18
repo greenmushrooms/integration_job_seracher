@@ -9,8 +9,9 @@ pull:
       branch: main
       include_submodules: true
   - prefect.deployments.steps.run_shell_script:
-      id: uv-sync
-      script: uv sync
+      id: install-deps
+      script: |
+        uv pip install --system pandas requests python-jobspy sqlalchemy anthropic beautifulsoup4 lxml psycopg2-binary dbt-postgres
       directory: "{{ clone-step.directory }}"
       stream_output: true
 
