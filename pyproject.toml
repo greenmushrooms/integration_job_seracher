@@ -14,5 +14,16 @@ dependencies = [
     "anthropic",
     "beautifulsoup4",
     "lxml",
-    "psycopg2"
+    "psycopg2-binary",
+]
+
+[tool.uv]
+constraint-dependencies = [
+    "psycopg2-binary",
+]
+conflicts = [
+    [
+        { package = "psycopg2" },
+        { package = "psycopg2-binary" },
+    ],
 ]
