@@ -8,11 +8,7 @@ pull:
       repository: https://github.com/greenmushrooms/integration_job_seracher.git
       branch: main
   - prefect.deployments.steps.run_shell_script:
-      script: |
-        cd integration_job_seracher
-        echo "Current directory: $(pwd)"
-        ls -la
-        pip install -e .
+      script: bash -c "cd integration_job_seracher && pwd && ls -la && pip install -e ."
       stream_output: true
 deployments:
   - name: job-search-deployment
