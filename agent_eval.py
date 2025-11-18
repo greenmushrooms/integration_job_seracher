@@ -4,12 +4,9 @@ from typing import Dict, List
 
 import anthropic
 import pandas as pd
-from dotenv import load_dotenv
+from prefect.blocks.system import Secret
 
-load_dotenv()
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-
-load_dotenv()
+DB_HOST = Secret.load("job-searcher--anthropic-api-key").get()
 
 
 class ClaudeJobEvaluator:

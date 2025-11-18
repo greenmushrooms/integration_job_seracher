@@ -7,24 +7,21 @@ from dotenv import load_dotenv
 from jobspy import scrape_jobs
 from pandas import DataFrame
 from prefect import flow, runtime, task
+from prefect.blocks.system import Secret
 from prefect_dbt import PrefectDbtRunner, PrefectDbtSettings
 from sqlalchemy import create_engine, text
 
 from agent_eval import ClaudeJobEvaluator
 from helper import format_job_message_telegram, format_summary_message_telegram
 
-# Load environment variables
-load_dotenv()
-
 # Get database credentials
-DB_HOST = os.getenv("DATABASE_HOST")
-DB_PORT = os.getenv("DATABASE_PORT")
-DB_NAME = os.getenv("DATABASE_NAME")
-DB_USER = os.getenv("DATABSE_USER")
-DB_PASSWORD = os.getenv("DATABSE_PASSWORD")
-
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+DB_HOST = Secret.load("job-searcher--database-host").get()
+DB_PORT = Secret.load("job-searcher--database-port").get()
+DB_NAME = Secret.load("job-searcher--database-name").get()
+DB_USER = Secret.load("job-searcher--database-user").get()
+DB_PASSWORD = Secret.load("job-searcher--database-password").get()
+TELEGRAM_BOT_TOKEN = Secret.load("job-searcher--telegram-bot-token").get()
+TELEGRAM_CHAT_ID = Secret.load("job-searcher--telegram-chat-id").get()
 
 CONNECTION_STRING = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"

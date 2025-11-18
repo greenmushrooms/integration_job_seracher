@@ -1,12 +1,15 @@
 name: job-search-project
 prefect-version: 3.0.0
-
 build: null
-
 push: null
-
-pull: null
-
+pull:
+  - prefect.deployments.steps.git_clone:
+      repository: https://github.com/greenmushrooms/integration_job_seracher.git
+      branch: main
+  - prefect.deployments.steps.set_working_directory:
+      directory: job_searcher_2
+  - prefect.deployments.steps.run_shell_script:
+      script: uv sync
 deployments:
   - name: job-search-deployment
     version: 1.0.0
