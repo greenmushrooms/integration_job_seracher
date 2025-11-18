@@ -1,9 +1,17 @@
 [project]
 name = "job-search-project"
 version = "0.1.0"
-description = "Add your description here"
+description = "Job search and processing flow"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "prefect>=3.4.24",
+    "pandas",
+    "requests",
+    "python-jobspy",
+    "prefect-dbt",
+    "sqlalchemy",
+    "anthropic",
+    "beautifulsoup4",
+    "lxml",
 ]
