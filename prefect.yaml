@@ -7,6 +7,7 @@ pull:
       id: clone-step
       repository: https://github.com/greenmushrooms/integration_job_seracher.git
       branch: main
+      include_submodules: true
   - prefect.deployments.steps.run_shell_script:
       id: uv-sync
       script: uv sync
