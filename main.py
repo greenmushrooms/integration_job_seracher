@@ -1,9 +1,7 @@
 import json
-import os
 
 import pandas as pd
 import requests
-from dotenv import load_dotenv
 from jobspy import scrape_jobs
 from pandas import DataFrame
 from prefect import flow, runtime, task
