@@ -1,5 +1,5 @@
 [project]
-name = "integration_job_seracher"
+name = "job-search-project"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
