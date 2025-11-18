@@ -5,9 +5,7 @@ build: null
 
 push: null
 
-pull:
-  - prefect.deployments.steps.set_working_directory:
-      directory: /opt/prefect/flows/job_searcher_2
+pull: null
 
 deployments:
   - name: job-search-deployment
@@ -18,9 +16,11 @@ deployments:
     parameters:
       title: "data engineer"
       location: "Toronto, ON"
+      profile: "Slava"
+      searches: 60
+    schedule:
+      cron: "0 7 * * *"
+      timezone: "America/Toronto"
     work_pool:
       name: dev-pool
       work_queue_name: default
-    schedules:
-      - cron: "0 7 * * *"
-        active: true

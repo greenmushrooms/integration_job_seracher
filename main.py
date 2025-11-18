@@ -52,13 +52,15 @@ def send_telegram_message(message_text: str) -> bool:
 
 
 @task()
-def find_and_process(title: str, location: str, profile: str) -> DataFrame:
+def find_and_process(
+    title: str, location: str, profile: str, searches: 60
+) -> DataFrame:
     jobs = scrape_jobs(
         site_name=["indeed", "linkedin", "google"],
         search_term=title,
         google_search_term="Data engineer jobs near Toronto, Ontario since yesterday",
         location=location,
-        results_wanted=60,
+        results_wanted=searches,
         hours_old=72,
         country_indeed="canada",
         linkedin_fetch_description=True,
@@ -137,11 +139,11 @@ def run_dbt():
 
 
 @flow()
-def process_jobs(profile: str, run_name: str = None):
+def process_jobs(profile: str, run_name: str = None, searches=20):
     sys_run_name = run_name or runtime.flow_run.name
 
     resume = load_resume(profile)
-    jobs_df = load_jobs(profile, limit=40)
+    jobs_df = load_jobs(profile, limit=searches)
 
     print(f"Loaded resume: {len(resume)} characters")
     print(f"Loaded {len(jobs_df)} jobs\n")
@@ -221,13 +223,18 @@ def notify_top_jobs(min_score: float = 7.5, run_name: str = None):
 
 @flow()
 def get_jobs(
-    title: str = "data engineer", location: str = "Toronto, On", profile: str = "Slava"
+    title: str = "data engineer",
+    location: str = "Toronto, On",
+    profile: str = "Slava",
+    searches: int = 60,
 ):
     parent_run_name = runtime.flow_run.name
-    thing = find_and_process(title=title, location=location, profile=profile)
+    thing = find_and_process(
+        title=title, location=location, profile=profile, searches=60
+    )
     run_dbt()
-    process_jobs(profile, parent_run_name)  # Pass parent run name
-    notify_top_jobs(min_score=7.5, run_name=parent_run_name)  # Pass parent run name
+    process_jobs(profile, parent_run_name, searches)
+    notify_top_jobs(min_score=7.5, run_name=parent_run_name)
     return thing
 
 
