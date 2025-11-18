@@ -4,21 +4,16 @@ build: null
 push: null
 pull:
   - prefect.deployments.steps.git_clone:
+      id: clone-step
       repository: https://github.com/greenmushrooms/integration_job_seracher.git
       branch: main
-  - prefect.deployments.steps.set_working_directory:
-      directory: "{{ clone-step.directory }}"
   - prefect.deployments.steps.run_shell_script:
       script: |
+        cd integration_job_seracher
         echo "Current directory: $(pwd)"
-        echo "Directory contents:"
         ls -la
-        echo "Looking for pyproject.toml..."
-        find . -name "pyproject.toml"
-        cd "{{ clone-step.directory }}"
-        echo "After cd, current directory: $(pwd)"
-        ls -la
-        uv sync
+        pip install -e .
+      stream_output: true
 deployments:
   - name: job-search-deployment
     version: 1.0.0
