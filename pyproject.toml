@@ -1,7 +1,7 @@
 [project]
-name = "job-search-project"
+name = "integration-job-searcher"
 version = "0.1.0"
-description = "Job search and processing flow"
+description = "Job search and processing flow with dbt"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,21 +9,20 @@ dependencies = [
     "pandas",
     "requests",
     "python-jobspy",
-    "prefect-dbt",
+    "prefect-dbt>=0.7.0",
     "sqlalchemy",
     "anthropic",
     "beautifulsoup4",
     "lxml",
-    "psycopg2-binary",
+    "psycopg2-binary==2.9.9",
+    "dbt-postgres>=1.8.1",
 ]
 
 [tool.uv]
-constraint-dependencies = [
-    "psycopg2-binary",
+override-dependencies = [
+    "psycopg2-binary==2.9.9",
 ]
-conflicts = [
-    [
-        { package = "psycopg2" },
-        { package = "psycopg2-binary" },
-    ],
-]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

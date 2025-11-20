@@ -1,25 +1,29 @@
-name: job-search-project
-prefect-version: 3.0.0
+name: integration-job-searcher
+prefect-version: "3.0.0"
 build: null
 push: null
+
 pull:
   - prefect.deployments.steps.git_clone:
       id: clone-step
       repository: https://github.com/greenmushrooms/integration_job_seracher.git
       branch: main
       include_submodules: true
+
   - prefect.deployments.steps.run_shell_script:
       id: install-deps
-      script: |
-        uv pip install --system pandas requests python-jobspy sqlalchemy anthropic beautifulsoup4 lxml psycopg2-binary dbt-postgres
       directory: "{{ clone-step.directory }}"
+      script: |
+        git submodule update --init --recursive
+        uv pip install --no-cache --system -e .
+        ls -la data__job_searcher/
       stream_output: true
 
 deployments:
   - name: job-search-deployment
-    version: 1.0.0
+    version: "1.0.0"
     tags: ["jobs", "etl"]
-    description: Job search and processing flow
+    description: "Job search and processing flow"
     entrypoint: main.py:get_jobs
     parameters:
       title: "data engineer"
@@ -30,5 +34,9 @@ deployments:
       cron: "0 7 * * *"
       timezone: "America/Toronto"
     work_pool:
-      name: dev-pool
+      name: dev-pool-docker
       work_queue_name: default
+      job_variables:
+        image: "integration-job-searcher:latest"
+        image_pull_policy: "Never"
+        network_mode: "host"
