@@ -1,4 +1,5 @@
 import json
+import os
 
 import pandas as pd
 import requests
@@ -11,6 +12,12 @@ from sqlalchemy import create_engine, text
 from agent_eval import ClaudeJobEvaluator
 from helper import format_job_message_telegram, format_summary_message_telegram
 
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 CONNECTION_STRING = (
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )

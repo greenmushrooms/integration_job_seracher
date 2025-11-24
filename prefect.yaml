@@ -15,9 +15,7 @@ pull:
       directory: "{{ clone-step.directory }}"
       script: |
         git submodule update --init --recursive
-        uv pip install --no-cache --system -e .
         ls -la data__job_searcher/
-        cat data__job_searcher/profiles.yml
       stream_output: true
 
 deployments:
