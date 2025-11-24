@@ -17,6 +17,7 @@ pull:
         git submodule update --init --recursive
         uv pip install --no-cache --system -e .
         ls -la data__job_searcher/
+        cat data__job_searcher/profiles.yml
       stream_output: true
 
 deployments:
@@ -40,3 +41,9 @@ deployments:
         image: "integration-job-searcher:latest"
         image_pull_policy: "Never"
         network_mode: "host"
+        env:
+          DB_HOST: "{{ prefect.blocks.secret.job-searcher--database-host }}"
+          DB_PORT: "{{ prefect.blocks.secret.job-searcher--database-port }}"
+          DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
+          DB_PASSWORD: "{{ prefect.blocks.secret.job-searcher--database-password }}"
+          DB_NAME: "{{ prefect.blocks.secret.job-searcher--database-name }}"
