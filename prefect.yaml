@@ -15,7 +15,17 @@ pull:
       directory: "{{ clone-step.directory }}"
       script: |
         git submodule update --init --recursive
-        ls -la data__job_searcher/
+
+        echo "--- ROOT DIRECTORY CONTENTS ---"
+        ls -la .
+
+        echo "--- CHECKING MAIN.PY CONTENT ---"
+        # Read the first 20 lines of the ROOT main.py
+        head -n 20 main.py
+
+        echo "--- CHECKING AGENT_EVAL.PY CONTENT ---"
+        # Check if Secret.load is still in agent_eval.py
+        grep "Secret.load" agent_eval.py || echo "Good! Secret.load not found in agent_eval.py"
       stream_output: true
 
 deployments:
