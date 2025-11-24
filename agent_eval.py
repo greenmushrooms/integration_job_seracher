@@ -4,9 +4,6 @@ from typing import Dict, List
 
 import anthropic
 import pandas as pd
-from prefect.blocks.system import Secret
-
-ANTHROPIC_API_KEY = Secret.load("job-searcher--anthropic-api-key", _sync=True).get()
 
 
 class ClaudeJobEvaluator:
