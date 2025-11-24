@@ -47,3 +47,5 @@ deployments:
           DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
           DB_PASSWORD: "{{ prefect.blocks.secret.job-searcher--database-password }}"
           DB_NAME: "{{ prefect.blocks.secret.job-searcher--database-name }}"
+          TELEGRAM_BOT_TOKEN: "{{ prefect.blocks.secret.job-searcher--telegram-bot-token }}"
+          TELEGRAM_CHAT_ID: "{{ prefect.blocks.secret.job-searcher--telegram-chat-id }}"
