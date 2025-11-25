@@ -203,7 +203,7 @@ def send_telegram_notifications(jobs, run_name: str):
 
 
 @flow()
-def notify_top_jobs(min_score: float = 7.5, run_name: str = None):
+def notify_top_jobs(min_score: float = 6.9, run_name: str = None):
     """Flow to retrieve and send top job matches via SMS"""
     sys_run_name = run_name or runtime.flow_run.name
     print(f"Notifying top jobs for run: {sys_run_name}")

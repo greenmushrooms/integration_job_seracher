@@ -9,42 +9,25 @@ import pandas as pd
 class ClaudeJobEvaluator:
     """Evaluates job postings against a resume using Claude API"""
 
-    def __init__(self, model: str = "claude-3-haiku-20240307"):
+    def __init__(self, model: str = "claude-haiku-4-5"):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.model = model
-
-        # UPDATED BASELINE (Using your real info)
-        self.current_stats = {
-            "compensation": "$120,000 CAD",
-            "level": "Lead Data Engineer",
-            "stack": "Python, SQL, Azure/Cloud",
-            "work_type": "Hybrid",
-            "focus": "Data Engineering",
-        }
 
     def evaluate(self, resume: str, jobs_df: pd.DataFrame) -> pd.DataFrame:
         results = []
 
-        # Build system prompt
-        system_text = f"""You are a career agent. Compare roles to the candidate's current baseline.
+        # System Prompt: Focused on the 4 key metrics
+        system_text = """You are a tallented Talent Evaluator. trying to deliver a good fit and or a growth opratunity
+        1. Extract the candidate's "Current Baseline" from their RESUME.
+        2. Compare strictly against the JOB DESCRIPTION.
 
-        CANDIDATE BASELINE:
-        - Comp: {self.current_stats["compensation"]}
-        - Level: {self.current_stats["level"]}
-
-        SCORING (1-10):
-        1. skills_match: Stack alignment.
-        2. experience_relevance: Problem/Domain fit.
-        3. keywords_ats: Keyword density.
-        4. career_level_alignment: 10=Higher Pay/Better Title. 5=Lateral. 1=Demotion.
-        5. soft_skills: Culture fit.
         """
 
         system = [
             {"type": "text", "text": system_text},
             {
                 "type": "text",
-                "text": f"RESUME:\n{resume}",
+                "text": f"CANDIDATE RESUME:\n\n{resume}",
                 "cache_control": {"type": "ephemeral"},
             },
         ]
@@ -60,64 +43,93 @@ class ClaudeJobEvaluator:
 
     def _score_job(self, job: pd.Series, system: List[Dict]) -> Dict:
         prompt = f"""
-        JOB:
+        JOB DESCRIPTION:
         Company: {job.get("company", "Unknown")}
         Title: {job.get("title", "Unknown")}
-        {job.get("description", "")[:4000]}
+
+        {job.get("description", "")[:6000]}
 
         INSTRUCTIONS:
-        Compare this job to the Baseline. Return JSON.
-        For "verdict", use natural language like: "Slightly Higher", "Massive Pay Jump", "Lateral Move", "Lower", "Different Stack".
+        Analyze the job and return a valid JSON object.
 
+        FORMATTING RULES:
+        1. "verdict": Keep it short (e.g. "Step Up", "Lateral", "Title Regression").
+        2. "tech_stack": Identify the top 5 matches and top 3 gaps.
+        3. "tech_stack.verdict": Be enthusiastic if they match well (e.g. "Elite Match", "Perfect Fit").
+        4. "one_line_summary": Highlight the trade-off (e.g. "Technical slam dunk, but a step backward in authority.")
+
+        JSON STRUCTURE:
         {{
           "match_scores": {{
-              "skills_match": <1-10>,
-              "experience_relevance": <1-10>,
-              "keywords_ats": <1-10>,
-              "career_level_alignment": <1-10>,
-              "soft_skills_cultural_fit": <1-10>
+              "skills_match": <int 1-10>,
+              "career_level_alignment": <int 1-10>,
+              "experience_relevance": <int 1-10 (Domain/Problem fit)>,
+              "culture_fit": <int 1-10 (Remote/Values/Soft Skills)>
           }},
           "comparisons": [
-            {{ "category": "Salary", "verdict": "<e.g. Significantly Higher>", "icon": "<✅/❌/⚠️/➖>" }},
-            {{ "category": "Level", "verdict": "<e.g. Step Down>", "icon": "<✅/❌/⚠️/➖>" }},
-            {{ "category": "Stack", "verdict": "<e.g. Modernized>", "icon": "<✅/❌/⚠️/➖>" }},
-            {{ "category": "Remote", "verdict": "<e.g. Stricter (5 days)>", "icon": "<✅/❌/⚠️/➖>" }}
-          ]
+            {{
+                "category": "🧗 Level",
+                "me_val": "<My Level>",
+                "them_val": "<Job Level>",
+                "icon": "<✅/➖/❌/⚠️>"
+            }},
+            {{
+                "category": "🏠 Type",
+                "me_val": "<My Type>",
+                "them_val": "<Job Type>",
+                "icon": "<✅/➖/❌/⚠️>"
+            }}
+          ],
+          "tech_stack": {{
+              "verdict": "<Short enthusiastic summary>",
+              "matches": ["<Tool 1>", "<Tool 2>", "<Tool 3>", "<Tool 4>", "<Tool 5>"],
+              "gaps": ["<Gap 1>", "<Gap 2>", "<Gap 3>"]
+          }},
+          "one_line_summary": "<One sentence summary>"
         }}
         """
 
-        # Call Claude (Existing code logic...)
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=1000,
-            system=system,
-            messages=[{"role": "user", "content": prompt}],
-        )
-
-        # ... (Existing parsing logic) ...
-        response_text = message.content[0].text.strip()
-        # Clean markdown if present
-        if response_text.startswith("```"):
-            response_text = response_text.split("```json")[-1].split("```")[0].strip()
-
         try:
-            data = json.loads(response_text)
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=800,
+                system=system,
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            response_text = message.content[0].text.strip()
+            if "```json" in response_text:
+                response_text = response_text.split("```json")[1].split("```")[0]
+            elif "```" in response_text:
+                response_text = response_text.split("```")[1].split("```")[0]
+
+            data = json.loads(response_text.strip())
+
+            storage_payload = {
+                "comparisons": data.get("comparisons", []),
+                "tech_stack": data.get("tech_stack", {}),
+                "summary": data.get("one_line_summary", "No summary provided"),
+            }
+
+            # Calculate Average Score Python Side
             scores = data.get("match_scores", {})
-            comparisons = data.get("comparisons", [])
-            avg = sum(scores.values()) / len(scores) if scores else 0
+            if scores:
+                avg_score = sum(scores.values()) / len(scores)
+            else:
+                avg_score = 0
 
             return {
                 "job_id": job["id"],
                 "match_scores": json.dumps(scores),
-                "avg_score": avg,
-                "reasoning": json.dumps(
-                    comparisons
-                ),  # Store comparison list as reasoning
+                "avg_score": avg_score,
+                "reasoning": json.dumps(storage_payload),
             }
-        except:
+
+        except Exception as e:
+            print(f"Error evaluating job {job.get('id')}: {e}")
             return {
                 "job_id": job["id"],
                 "match_scores": "{}",
                 "avg_score": 0,
-                "reasoning": "[]",
+                "reasoning": json.dumps({"summary": "Error parsing response"}),
             }
