@@ -16,15 +16,6 @@ pull:
       script: |
         git submodule update --init --recursive
 
-        echo "--- ROOT DIRECTORY CONTENTS ---"
-        ls -la .
-
-        echo "--- CHECKING MAIN.PY CONTENT ---"
-        head -n 20 main.py
-
-        echo "--- CHECKING AGENT_EVAL.PY CONTENT ---"
-        grep "Secret.load" agent_eval.py || echo "Good! Secret.load not found in agent_eval.py"
-
       stream_output: true
 
 deployments:
@@ -37,7 +28,7 @@ deployments:
       title: "data engineer"
       location: "Toronto, ON"
       profile: "Slava"
-      searches:
+      searches: 10
     schedule:
       cron: "0 7 * * *"
       timezone: "America/Toronto"
