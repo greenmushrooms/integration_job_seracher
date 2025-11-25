@@ -20,12 +20,11 @@ pull:
         ls -la .
 
         echo "--- CHECKING MAIN.PY CONTENT ---"
-        # Read the first 20 lines of the ROOT main.py
         head -n 20 main.py
 
         echo "--- CHECKING AGENT_EVAL.PY CONTENT ---"
-        # Check if Secret.load is still in agent_eval.py
         grep "Secret.load" agent_eval.py || echo "Good! Secret.load not found in agent_eval.py"
+
       stream_output: true
 
 deployments:
@@ -38,7 +37,7 @@ deployments:
       title: "data engineer"
       location: "Toronto, ON"
       profile: "Slava"
-      searches: 60
+      searches:
     schedule:
       cron: "0 7 * * *"
       timezone: "America/Toronto"
@@ -55,5 +54,6 @@ deployments:
           DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
           DB_PASSWORD: "{{ prefect.blocks.secret.job-searcher--database-password }}"
           DB_NAME: "{{ prefect.blocks.secret.job-searcher--database-name }}"
+          ANTHROPIC_API_KEY: "{{ prefect.blocks.secret.job-searcher--anthropic-api-key }}"
           TELEGRAM_BOT_TOKEN: "{{ prefect.blocks.secret.job-searcher--telegram-bot-token }}"
           TELEGRAM_CHAT_ID: "{{ prefect.blocks.secret.job-searcher--telegram-chat-id }}"

@@ -12,23 +12,28 @@ from sqlalchemy import create_engine, text
 from agent_eval import ClaudeJobEvaluator
 from helper import format_job_message_telegram, format_summary_message_telegram
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
 
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-CONNECTION_STRING = (
-    f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
-ENGINE = create_engine(CONNECTION_STRING)
+def get_db_engine():
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_name = os.getenv("DB_NAME")
+    db_user = os.getenv("DB_USER")
+
+    db_password = os.getenv("DB_PASSWORD")
+    connection_string = (
+        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    )
+
+    return create_engine(connection_string)
 
 
 def send_telegram_message(message_text: str) -> bool:
     """Send a message via Telegram using simple requests"""
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     data = {
-        "chat_id": TELEGRAM_CHAT_ID,
+        "chat_id": chat_id,
         "text": message_text,
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
@@ -82,7 +87,7 @@ def load_jobs(profile: str, limit: int = 3) -> pd.DataFrame:
         LIMIT :limit
     """)
 
-    with ENGINE.connect() as conn:
+    with get_db_engine().connect() as conn:
         df = pd.read_sql_query(query, conn, params={"profile": profile, "limit": limit})
 
     return df
@@ -98,7 +103,7 @@ def load_resume(profile: str) -> str:
         LIMIT 1
     """)
 
-    with ENGINE.connect() as conn:
+    with get_db_engine().connect() as conn:
         result = conn.execute(query, {"profile": profile}).fetchone()
 
     if result:
@@ -110,7 +115,7 @@ def load_resume(profile: str) -> str:
 def write_to_db(df: DataFrame, schema: str, table_name: str) -> None:
     df.to_sql(
         name=table_name,
-        con=ENGINE,
+        con=get_db_engine(),
         schema=schema,
         if_exists="append",
         index=False,
@@ -168,7 +173,7 @@ def get_top_jobs(run_name: str, min_score: float = 7.5):
         ORDER BY e.avg_score DESC
     """)
 
-    with ENGINE.connect() as conn:
+    with get_db_engine().connect() as conn:
         result = conn.execute(query, {"run_name": run_name, "min_score": min_score})
         jobs = result.fetchall()
 
@@ -218,11 +223,11 @@ def get_jobs(
     title: str = "data engineer",
     location: str = "Toronto, On",
     profile: str = "Slava",
-    searches: int = 60,
+    searches: int = 5,
 ):
     parent_run_name = runtime.flow_run.name
     thing = find_and_process(
-        title=title, location=location, profile=profile, searches=60
+        title=title, location=location, profile=profile, searches=searches
     )
     run_dbt()
     process_jobs(profile, parent_run_name, searches)

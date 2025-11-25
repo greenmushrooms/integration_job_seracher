@@ -9,39 +9,42 @@ import pandas as pd
 class ClaudeJobEvaluator:
     """Evaluates job postings against a resume using Claude API"""
 
-    def __init__(self, model: str = "claude-haiku-4-5"):
+    def __init__(self, model: str = "claude-3-haiku-20240307"):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.model = model
 
+        # UPDATED BASELINE (Using your real info)
+        self.current_stats = {
+            "compensation": "$120,000 CAD",
+            "level": "Lead Data Engineer",
+            "stack": "Python, SQL, Azure/Cloud",
+            "work_type": "Hybrid",
+            "focus": "Data Engineering",
+        }
+
     def evaluate(self, resume: str, jobs_df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Evaluate multiple jobs against a resume.
-
-        Args:
-            resume: Candidate's resume text
-            jobs_df: DataFrame with job descriptions (must have 'id', 'company', 'description', 'title')
-
-        Returns:
-            DataFrame with job_id, match_scores (JSON), total_score, and reasoning
-        """
         results = []
 
-        # Build system prompt with cached resume
-        system = [
-            {
-                "type": "text",
-                "text": """You are a job-resume matching expert. Analyze jobs against the provided resume and score on these 5 metrics (1-10 scale):
-1. skills_match - Technical skills alignment
-2. experience_relevance - Role/responsibility alignment
-3. keywords_ats - ATS keyword optimization
-4. career_level_alignment - Seniority/progression fit
-5. soft_skills_cultural_fit - Leadership/culture alignment
+        # Build system prompt
+        system_text = f"""You are a career agent. Compare roles to the candidate's current baseline.
 
-Always respond with valid JSON only. NO markdown, NO backticks, NO explanatory text outside the JSON.""",
-            },
+        CANDIDATE BASELINE:
+        - Comp: {self.current_stats["compensation"]}
+        - Level: {self.current_stats["level"]}
+
+        SCORING (1-10):
+        1. skills_match: Stack alignment.
+        2. experience_relevance: Problem/Domain fit.
+        3. keywords_ats: Keyword density.
+        4. career_level_alignment: 10=Higher Pay/Better Title. 5=Lateral. 1=Demotion.
+        5. soft_skills: Culture fit.
+        """
+
+        system = [
+            {"type": "text", "text": system_text},
             {
                 "type": "text",
-                "text": f"CANDIDATE RESUME:\n\n{resume}",
+                "text": f"RESUME:\n{resume}",
                 "cache_control": {"type": "ephemeral"},
             },
         ]
@@ -56,32 +59,34 @@ Always respond with valid JSON only. NO markdown, NO backticks, NO explanatory t
         return pd.DataFrame(results)
 
     def _score_job(self, job: pd.Series, system: List[Dict]) -> Dict:
-        """Score a single job against the cached resume"""
-
         prompt = f"""
-JOB DESCRIPTION:
-Company: {job.get("company", "Not specified")}
-Title: {job.get("title", "Not specified")}
+        JOB:
+        Company: {job.get("company", "Unknown")}
+        Title: {job.get("title", "Unknown")}
+        {job.get("description", "")[:4000]}
 
-{job.get("description", "No description available")}
+        INSTRUCTIONS:
+        Compare this job to the Baseline. Return JSON.
+        For "verdict", use natural language like: "Slightly Higher", "Massive Pay Jump", "Lateral Move", "Lower", "Different Stack".
 
-CRITICAL INSTRUCTIONS:
-- Respond with ONLY the JSON object below
-- DO NOT use markdown code blocks
-- DO NOT use backticks
-- DO NOT include any text before or after the JSON
-- The entire response must be valid, parseable JSON
+        {{
+          "match_scores": {{
+              "skills_match": <1-10>,
+              "experience_relevance": <1-10>,
+              "keywords_ats": <1-10>,
+              "career_level_alignment": <1-10>,
+              "soft_skills_cultural_fit": <1-10>
+          }},
+          "comparisons": [
+            {{ "category": "Salary", "verdict": "<e.g. Significantly Higher>", "icon": "<✅/❌/⚠️/➖>" }},
+            {{ "category": "Level", "verdict": "<e.g. Step Down>", "icon": "<✅/❌/⚠️/➖>" }},
+            {{ "category": "Stack", "verdict": "<e.g. Modernized>", "icon": "<✅/❌/⚠️/➖>" }},
+            {{ "category": "Remote", "verdict": "<e.g. Stricter (5 days)>", "icon": "<✅/❌/⚠️/➖>" }}
+          ]
+        }}
+        """
 
-{{
-  "skills_match": <1-10>,
-  "experience_relevance": <1-10>,
-  "keywords_ats": <1-10>,
-  "career_level_alignment": <1-10>,
-  "soft_skills_cultural_fit": <1-10>,
-  "reasoning": "<brief explanation>"
-}}
-"""
-
+        # Call Claude (Existing code logic...)
         message = self.client.messages.create(
             model=self.model,
             max_tokens=1000,
@@ -89,26 +94,30 @@ CRITICAL INSTRUCTIONS:
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Parse the JSON response
-        response_text = message.content[0].text
-
-        # Clean up potential markdown formatting
-        response_text = response_text.strip()
-        if response_text.startswith("```json"):
-            response_text = response_text[7:]
+        # ... (Existing parsing logic) ...
+        response_text = message.content[0].text.strip()
+        # Clean markdown if present
         if response_text.startswith("```"):
-            response_text = response_text[3:]
-        if response_text.endswith("```"):
-            response_text = response_text[:-3]
-        response_text = response_text.strip()
+            response_text = response_text.split("```json")[-1].split("```")[0].strip()
 
-        scores = json.loads(response_text)
-        reasoning = scores.pop("reasoning", "No reasoning provided")
-        avg_score = sum(scores.values()) / len(scores)
+        try:
+            data = json.loads(response_text)
+            scores = data.get("match_scores", {})
+            comparisons = data.get("comparisons", [])
+            avg = sum(scores.values()) / len(scores) if scores else 0
 
-        return {
-            "job_id": job["id"],
-            "match_scores": json.dumps(scores),
-            "avg_score": avg_score,
-            "reasoning": reasoning,
-        }
+            return {
+                "job_id": job["id"],
+                "match_scores": json.dumps(scores),
+                "avg_score": avg,
+                "reasoning": json.dumps(
+                    comparisons
+                ),  # Store comparison list as reasoning
+            }
+        except:
+            return {
+                "job_id": job["id"],
+                "match_scores": "{}",
+                "avg_score": 0,
+                "reasoning": "[]",
+            }
