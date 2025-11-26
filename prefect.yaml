@@ -20,7 +20,7 @@ pull:
 
 deployments:
   - name: job-search-deployment
-    version: "1.0.0"
+    version: "1.0.1"
     tags: ["jobs", "etl"]
     description: "Job search and processing flow"
     entrypoint: main.py:get_jobs

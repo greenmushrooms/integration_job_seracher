@@ -7,129 +7,163 @@ import pandas as pd
 
 
 class ClaudeJobEvaluator:
-    """Evaluates job postings against a resume using Claude API"""
-
-    def __init__(self, model: str = "claude-haiku-4-5"):
+    def __init__(self, model: str = "claude-3-5-haiku-20241022"):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.model = model
+
+        # Define the schema strictly as a Tool
+        self.tool_schema = {
+            "name": "submit_job_evaluation",
+            "description": "Submit the evaluation of a job posting against a candidate resume.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "verdict": {
+                        "type": "string",
+                        "enum": ["Step Up", "Lateral", "Title Regression", "Pivot"],
+                    },
+                    "match_scores": {
+                        "type": "object",
+                        "properties": {
+                            "skills_match": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10,
+                            },
+                            "career_level_alignment": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10,
+                            },
+                            "experience_relevance": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10,
+                            },
+                            "culture_fit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10,
+                            },
+                        },
+                        "required": [
+                            "skills_match",
+                            "career_level_alignment",
+                            "experience_relevance",
+                            "culture_fit",
+                        ],
+                    },
+                    "tech_stack_analysis": {
+                        "type": "object",
+                        "properties": {
+                            "verdict": {"type": "string"},
+                            "matches": {"type": "array", "items": {"type": "string"}},
+                            "gaps": {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["verdict", "matches", "gaps"],
+                    },
+                    "one_line_summary": {"type": "string"},
+                },
+                "required": [
+                    "verdict",
+                    "match_scores",
+                    "tech_stack_analysis",
+                    "one_line_summary",
+                ],
+            },
+        }
 
     def evaluate(self, resume: str, jobs_df: pd.DataFrame) -> pd.DataFrame:
         results = []
 
-        # System Prompt: Focused on the 4 key metrics
-        system_text = """You are a tallented Talent Evaluator. trying to deliver a good fit and or a growth opratunity
-        1. Extract the candidate's "Current Baseline" from their RESUME.
-        2. Compare strictly against the JOB DESCRIPTION.
+        # System Prompt: Clean and persona-driven
+        system_text = """You are an expert Talent Evaluator.
+        Your goal is to identify growth opportunities.
+        1. Analyze the candidate's RESUME to establish a baseline.
+        2. Compare strictly against the JOB DESCRIPTION."""
 
-        """
-
-        system = [
+        # Cache the resume (Ephemeral caching)
+        system_messages = [
             {"type": "text", "text": system_text},
             {
                 "type": "text",
-                "text": f"CANDIDATE RESUME:\n\n{resume}",
+                "text": f"<candidate_resume>\n{resume}\n</candidate_resume>",
                 "cache_control": {"type": "ephemeral"},
             },
         ]
 
+        print(f"Starting evaluation of {len(jobs_df)} jobs...")
+
         for idx, job in jobs_df.iterrows():
             print(
-                f"Evaluating job {idx + 1}/{len(jobs_df)}: {job.get('company', 'Unknown')}"
+                f"Evaluating {idx + 1}/{len(jobs_df)}: {job.get('company', 'Unknown')}"
             )
-            result = self._score_job(job, system)
-            results.append(result)
+
+            # Error handling wrapper
+            try:
+                result = self._score_job_with_tool(job, system_messages)
+                results.append(result)
+            except Exception as e:
+                print(f"FAILED on job {job.get('id', 'unknown')}: {e}")
+                results.append(
+                    {
+                        "job_id": job.get("id"),
+                        "avg_score": 0,
+                        "match_scores": "{}",
+                        "reasoning": json.dumps({"summary": f"Error: {str(e)}"}),
+                    }
+                )
 
         return pd.DataFrame(results)
 
-    def _score_job(self, job: pd.Series, system: List[Dict]) -> Dict:
-        prompt = f"""
-        JOB DESCRIPTION:
-        Company: {job.get("company", "Unknown")}
-        Title: {job.get("title", "Unknown")}
+    def _score_job_with_tool(self, job: pd.Series, system_messages: List[Dict]) -> Dict:
+        # Don't truncate descriptions! Claude handles 200k tokens.
+        user_content = f"""
+        Please evaluate this position:
 
-        {job.get("description", "")[:6000]}
+        COMPANY: {job.get("company", "Unknown")}
+        TITLE: {job.get("title", "Unknown")}
 
-        INSTRUCTIONS:
-        Analyze the job and return a valid JSON object.
-
-        FORMATTING RULES:
-        1. "verdict": Keep it short (e.g. "Step Up", "Lateral", "Title Regression").
-        2. "tech_stack": Identify the top 5 matches and top 3 gaps.
-        3. "tech_stack.verdict": Be enthusiastic if they match well (e.g. "Elite Match", "Perfect Fit").
-        4. "one_line_summary": Highlight the trade-off (e.g. "Technical slam dunk, but a step backward in authority.")
-
-        JSON STRUCTURE:
-        {{
-          "match_scores": {{
-              "skills_match": <int 1-10>,
-              "career_level_alignment": <int 1-10>,
-              "experience_relevance": <int 1-10 (Domain/Problem fit)>,
-              "culture_fit": <int 1-10 (Remote/Values/Soft Skills)>
-          }},
-          "comparisons": [
-            {{
-                "category": "🧗 Level",
-                "me_val": "<My Level>",
-                "them_val": "<Job Level>",
-                "icon": "<✅/➖/❌/⚠️>"
-            }},
-            {{
-                "category": "🏠 Type",
-                "me_val": "<My Type>",
-                "them_val": "<Job Type>",
-                "icon": "<✅/➖/❌/⚠️>"
-            }}
-          ],
-          "tech_stack": {{
-              "verdict": "<Short enthusiastic summary>",
-              "matches": ["<Tool 1>", "<Tool 2>", "<Tool 3>", "<Tool 4>", "<Tool 5>"],
-              "gaps": ["<Gap 1>", "<Gap 2>", "<Gap 3>"]
-          }},
-          "one_line_summary": "<One sentence summary>"
-        }}
+        DESCRIPTION:
+        {job.get("description", "")}
         """
 
-        try:
-            message = self.client.messages.create(
-                model=self.model,
-                max_tokens=800,
-                system=system,
-                messages=[{"role": "user", "content": prompt}],
-            )
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=2000,
+            temperature=0,
+            system=system_messages,
+            messages=[{"role": "user", "content": user_content}],
+            tools=[self.tool_schema],
+            tool_choice={
+                "type": "tool",
+                "name": "submit_job_evaluation",
+            },
+        )
 
-            response_text = message.content[0].text.strip()
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0]
-            elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0]
+        # Extract the JSON from the tool use input
+        tool_use = next(block for block in message.content if block.type == "tool_use")
+        data = tool_use.input
 
-            data = json.loads(response_text.strip())
+        # Calculate Average Score
+        scores = data.get("match_scores", {})
+        avg_score = sum(scores.values()) / len(scores) if scores else 0
 
-            storage_payload = {
-                "comparisons": data.get("comparisons", []),
-                "tech_stack": data.get("tech_stack", {}),
-                "summary": data.get("one_line_summary", "No summary provided"),
-            }
+        # DATA PACKING FOR DB COMPATIBILITY
+        # We pack the new fields into 'reasoning' so they fit into the existing JSON column.
+        # We map keys to match what helper.py expects (tech_stack, summary).
+        reasoning_payload = {
+            "verdict": data.get("verdict"),
+            "tech_stack": data.get("tech_stack_analysis"),
+            "summary": data.get("one_line_summary"),
+            # Comparisons are not generated by the new prompt, so we pass empty list
+            # to prevent helper.py from breaking.
+            "comparisons": [],
+        }
 
-            # Calculate Average Score Python Side
-            scores = data.get("match_scores", {})
-            if scores:
-                avg_score = sum(scores.values()) / len(scores)
-            else:
-                avg_score = 0
-
-            return {
-                "job_id": job["id"],
-                "match_scores": json.dumps(scores),
-                "avg_score": avg_score,
-                "reasoning": json.dumps(storage_payload),
-            }
-
-        except Exception as e:
-            print(f"Error evaluating job {job.get('id')}: {e}")
-            return {
-                "job_id": job["id"],
-                "match_scores": "{}",
-                "avg_score": 0,
-                "reasoning": json.dumps({"summary": "Error parsing response"}),
-            }
+        return {
+            "job_id": job.get("id"),
+            "avg_score": avg_score,
+            "match_scores": json.dumps(scores),
+            "reasoning": json.dumps(reasoning_payload),
+        }
