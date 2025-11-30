@@ -18,15 +18,28 @@ class ClaudeJobEvaluator:
             "input_schema": {
                 "type": "object",
                 "properties": {
+                    # MOVED TECH ANALYSIS TO THE TOP
+                    "tech_stack_analysis": {
+                        "type": "object",
+                        "properties": {
+                            "verdict": {"type": "string"},
+                            "matches": {"type": "array", "items": {"type": "string"}},
+                            # Force it to list at least 1 gap if score < 10
+                            "gaps": {"type": "array", "items": {"type": "string"}},
+                        },
+                        "required": ["verdict", "matches", "gaps"],
+                    },
                     "verdict": {
                         "type": "string",
                         "enum": ["Step Up", "Lateral", "Title Regression", "Pivot"],
                     },
+                    # SCORES COME LAST
                     "match_scores": {
                         "type": "object",
                         "properties": {
                             "skills_match": {
                                 "type": "integer",
+                                "description": "10=Perfect, 8=Strong, 6=Ramp-up needed. Penalize for domain switches.",
                                 "minimum": 1,
                                 "maximum": 10,
                             },
@@ -53,21 +66,14 @@ class ClaudeJobEvaluator:
                             "culture_fit",
                         ],
                     },
-                    "tech_stack_analysis": {
-                        "type": "object",
-                        "properties": {
-                            "verdict": {"type": "string"},
-                            "matches": {"type": "array", "items": {"type": "string"}},
-                            "gaps": {"type": "array", "items": {"type": "string"}},
-                        },
-                        "required": ["verdict", "matches", "gaps"],
-                    },
                     "one_line_summary": {"type": "string"},
                 },
+                # Enforce the order in the prompt logic (though JSON is unordered,
+                # LLMs tend to generate in definition order or you can enforce it via prompt)
                 "required": [
+                    "tech_stack_analysis",  # Analysis first
                     "verdict",
-                    "match_scores",
-                    "tech_stack_analysis",
+                    "match_scores",  # Score last
                     "one_line_summary",
                 ],
             },
