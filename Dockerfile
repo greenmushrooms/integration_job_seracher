@@ -19,3 +19,5 @@ RUN pip install --no-cache-dir \
     lxml \
     "psycopg2-binary==2.9.9" \
     "dbt-postgres>=1.8.1"
+
+COPY . /opt/prefect/

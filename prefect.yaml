@@ -3,20 +3,7 @@ prefect-version: "3.0.0"
 build: null
 push: null
 
-pull:
-  - prefect.deployments.steps.git_clone:
-      id: clone-step
-      repository: https://github.com/greenmushrooms/integration_job_seracher.git
-      branch: main
-      include_submodules: true
-
-  - prefect.deployments.steps.run_shell_script:
-      id: install-deps
-      directory: "{{ clone-step.directory }}"
-      script: |
-        git submodule update --init --recursive
-
-      stream_output: true
+pull: []
 
 deployments:
   - name: job-search-deployment
@@ -38,7 +25,8 @@ deployments:
       job_variables:
         image: "integration-job-searcher:latest"
         image_pull_policy: "Never"
-        network_mode: "host"
+        networks: ["project-hub-network"]
+
         env:
           DB_HOST: "{{ prefect.blocks.secret.job-searcher--database-host }}"
           DB_PORT: "{{ prefect.blocks.secret.job-searcher--database-port }}"
