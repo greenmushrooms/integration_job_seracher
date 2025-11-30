@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class ClaudeJobEvaluator:
-    def __init__(self, model: str = "claude-3-5-haiku-20241022"):
+    def __init__(self, model: str = "claude-haiku-4-5"):
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.model = model
 
@@ -18,13 +18,11 @@ class ClaudeJobEvaluator:
             "input_schema": {
                 "type": "object",
                 "properties": {
-                    # MOVED TECH ANALYSIS TO THE TOP
                     "tech_stack_analysis": {
                         "type": "object",
                         "properties": {
                             "verdict": {"type": "string"},
                             "matches": {"type": "array", "items": {"type": "string"}},
-                            # Force it to list at least 1 gap if score < 10
                             "gaps": {"type": "array", "items": {"type": "string"}},
                         },
                         "required": ["verdict", "matches", "gaps"],
@@ -33,7 +31,6 @@ class ClaudeJobEvaluator:
                         "type": "string",
                         "enum": ["Step Up", "Lateral", "Title Regression", "Pivot"],
                     },
-                    # SCORES COME LAST
                     "match_scores": {
                         "type": "object",
                         "properties": {
@@ -68,12 +65,10 @@ class ClaudeJobEvaluator:
                     },
                     "one_line_summary": {"type": "string"},
                 },
-                # Enforce the order in the prompt logic (though JSON is unordered,
-                # LLMs tend to generate in definition order or you can enforce it via prompt)
                 "required": [
-                    "tech_stack_analysis",  # Analysis first
+                    "tech_stack_analysis",
                     "verdict",
-                    "match_scores",  # Score last
+                    "match_scores",
                     "one_line_summary",
                 ],
             },
