@@ -11,6 +11,7 @@ deployments:
     tags: ["jobs", "etl"]
     description: "Job search and processing flow"
     entrypoint: main.py:get_jobs
+    working_dir: "/opt/prefect"
     parameters:
       title: "data engineer"
       location: "Toronto, ON"
