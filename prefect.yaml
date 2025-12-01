@@ -10,8 +10,8 @@ deployments:
     version: "1.0.1"
     tags: ["jobs", "etl"]
     description: "Job search and processing flow"
+    path: /opt/prefect
     entrypoint: main.py:get_jobs
-    working_dir: "/opt/prefect"
     parameters:
       title: "data engineer"
       location: "Toronto, ON"
@@ -27,7 +27,7 @@ deployments:
         image: "integration-job-searcher:latest"
         image_pull_policy: "Never"
         networks: ["project-hub-network"]
-
+        working_dir: "/opt/prefect"
         env:
           DB_HOST: "{{ prefect.blocks.secret.job-searcher--database-host }}"
           DB_PORT: "{{ prefect.blocks.secret.job-searcher--database-port }}"
