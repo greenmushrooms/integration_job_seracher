@@ -1,0 +1,40 @@
+{
+  "job_configuration": {
+    "name": "{{ name }}",
+    "image": "{{ image }}",
+    "command": "{{ command }}",
+    "env": "{{ env }}",
+    "labels": "{{ labels }}",
+    "image_pull_policy": "{{ image_pull_policy }}",
+    "networks": "{{ networks }}",
+    "network_mode": "{{ network_mode }}",
+    "auto_remove": "{{ auto_remove }}",
+    "volumes": "{{ volumes }}",
+    "stream_output": "{{ stream_output }}",
+    "mem_limit": "{{ mem_limit }}",
+    "privileged": "{{ privileged }}"
+  },
+  "variables": {
+    "type": "object",
+    "properties": {
+      "name": {"type": "string", "title": "Name"},
+      "image": {"type": "string", "title": "Image", "default": "integration-job-searcher:latest"},
+      "command": {"type": "string", "title": "Command"},
+      "env": {
+        "type": "object",
+        "title": "Environment Variables",
+        "default": {"PREFECT_API_URL": "http://prefect-server-dev:4200/api"},
+        "additionalProperties": {"type": "string"}
+      },
+      "labels": {"type": "object", "title": "Labels", "default": {}},
+      "image_pull_policy": {"type": "string", "enum": ["IfNotPresent", "Always", "Never"], "default": "Never"},
+      "networks": {"type": "array", "items": {"type": "string"}, "default": ["project-hub-network"]},
+      "network_mode": {"type": "string", "title": "Network Mode"},
+      "auto_remove": {"type": "boolean", "default": false},
+      "volumes": {"type": "array", "items": {"type": "string"}, "default": []},
+      "stream_output": {"type": "boolean", "default": true},
+      "mem_limit": {"type": "string"},
+      "privileged": {"type": "boolean", "default": false}
+    }
+  }
+}

@@ -20,11 +20,11 @@ def create_secrets():
     """Create all required Prefect Secret blocks from environment variables."""
 
     secrets = {
-        "job-searcher--database-host": os.getenv("DATABASE_HOST"),
-        "job-searcher--database-port": os.getenv("DATABASE_PORT"),
-        "job-searcher--database-name": os.getenv("DATABASE_NAME"),
-        "job-searcher--database-user": os.getenv("DATABSE_USER"),
-        "job-searcher--database-password": os.getenv("DATABSE_PASSWORD"),
+        "job-searcher--database-host": os.getenv("DB_HOST"),
+        "job-searcher--database-port": os.getenv("DB_PORT"),
+        "job-searcher--database-name": os.getenv("DB_NAME"),
+        "job-searcher--database-user": os.getenv("DB_USER"),
+        "job-searcher--database-password": os.getenv("DB_PASSWORD"),
         "job-searcher--telegram-bot-token": os.getenv("TELEGRAM_BOT_TOKEN"),
         "job-searcher--telegram-chat-id": os.getenv("TELEGRAM_CHAT_ID"),
         "job-searcher--anthropic-api-key": os.getenv("ANTHROPIC_API_KEY"),

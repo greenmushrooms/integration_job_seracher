@@ -2,15 +2,14 @@ name: integration-job-searcher
 prefect-version: "3.0.0"
 build: null
 push: null
-
-pull: []
-
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: /opt/prefect
 deployments:
   - name: job-search-deployment
     version: "1.0.1"
     tags: ["jobs", "etl"]
     description: "Job search and processing flow"
-    path: /opt/prefect
     entrypoint: main.py:get_jobs
     parameters:
       title: "data engineer"
@@ -29,6 +28,7 @@ deployments:
         networks: ["project-hub-network"]
         working_dir: "/opt/prefect"
         env:
+          PREFECT_API_URL: "http://prefect-server-dev:4200/api"
           DB_HOST: "{{ prefect.blocks.secret.job-searcher--database-host }}"
           DB_PORT: "{{ prefect.blocks.secret.job-searcher--database-port }}"
           DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
