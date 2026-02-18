@@ -1,0 +1,519 @@
+{
+  "li-4374123585": {
+    "job": {
+      "id": "li-4374123585",
+      "title": "Lead Spark Data Engineer",
+      "company": "Fusemachines",
+      "description": "**About Fusemachines**\n Fusemachines is a leading AI strategy, talent, and education services provider. Founded by Sameer Maskey Ph.D., Adjunct Associate Professor at Columbia University, Fusemachines has a core mission of democratizing AI. With a presence in 4 countries (Nepal, the United States, Canada, and the Dominican Republic) and more than 450 full\\-time employees, Fusemachines brings global AI expertise to transform companies worldwide. Founded in 2013, Fusemachines is a global provider of enterprise AI products and services, on a mission to democratize AI. Leveraging proprietary AI Studio and AI Engines, the company helps drive the clients\u2019 AI Enterprise Transformation, regardless of where they are in their Digital AI journeys. With offices in North America, Asia, and Latin America, Fusemachines provides a suite of enterprise AI offerings and specialty services that allow organizations of any size to implement and scale AI. Fusemachines serves companies in industries such as retail, manufacturing, and government.\n   \n\n  \n\n Fusemachines continues to actively pursue the mission of democratizing AI for the masses by providing high\\-quality AI education in underserved communities and helping organizations achieve their full potential with AI.\n   \n\n  \n\n**Type: Full\\-time, Remote**\n**Job Description:**\n We are looking for an experienced Lead Data Engineer to join our team to build the \"Brain\" of an IoT platform, a library that allows definition and metrics, validates it against a Virtual Schema, and generates optimized execution plans for both Spark (Batch) and Flink (Stream).\n   \n\n  \n\n**Qualification / Skill Set Requirement:**\n* 5\\+ years of hands\\-on data engineering experience with deep expertise in the Azure ecosystem\n* Expert\\-level Java, Python and SQL\n* Deep understanding of Apache Spark Internals (Catalyst Optimizer, Logical Plans)\n* Experience with ANTLR v4 or writing custom DSLs/Parsers\n* Experience with Databricks and Delta Lake optimization\n* Experience constructing Abstract Syntax Trees (ASTs)\n* Strong understanding of SDLC and Agile methodologies with hands\\-on experience in Azure DevOps, GitHub, CI/CD, and artifact management\n* Skilled in data modeling, data design, and data warehousing solutions on Azure Databricks\n* Knowledge of data quality, governance, and security best practices within Azure (AD, NSG, encryption, compliance)\n* Certifications preferred: Azure Fundamentals, Azure Data Engineer Associate, Databricks Certified Data Engineer Professional and Azure Solutions Architect Expert (nice to have)\n\n\n**Responsibilities**\n* Architect, design, and implement scalable and efficient data solutions on Spark and Flink\n* Implement the grammar for the IoT Query Language\n* Build the Query Validator to enforce semantic constraints before a query is executed\n* Develop a Spark Adapter: A translation layer that converts definition on metrics into Spark code\n* Implement relationships logic (traversing a Graph/Ontology) within the core to avoid database bottlenecks\n* Ensure 100% logic parity between Spark (Batch) and Flink (Stream) implementations\n* Manage and optimize Azure and Databricks resources, for performance, reliability, and cost\\-efficiency\n* Transform, clean, and prepare data using SQL, Python and Java\n* Monitor and fine\\-tune workloads and pipelines for optimal performance and reliability\n* Maintain clear documentation of solutions, configurations, and workflows\n* Actively participate in Agile team activities and continuous improvement initiatives\n* Promote and enforce data engineering best practices, including data governance, security, and data quality\n\n\n*Fusemachines is an Equal Opportunities Employer, committed to diversity and inclusion. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, or any other characteristic protected by applicable federal, state, or local laws.*\n Powered by JazzHR\n   \n\n  \n\n YJUdxcDhXn"
+    },
+    "qwen3:14b": {
+      "avg": 71.25,
+      "result": {
+        "tech_stack_analysis": {
+          "gaps": [
+            "Azure ecosystem",
+            "Java",
+            "ANTLR",
+            "Delta Lake",
+            "Apache Spark Internals (Catalyst, Logical Plans)",
+            "Azure DevOps",
+            "ASTs",
+            "Azure-specific governance"
+          ],
+          "matches": [
+            "Python",
+            "SQL",
+            "PySpark",
+            "Databricks",
+            "Data Warehousing"
+          ],
+          "verdict": "Pivot"
+        },
+        "match_scores": {
+          "career_level_alignment": 85,
+          "culture_fit": 75,
+          "experience_relevance": 65,
+          "skills_match": 60
+        },
+        "one_line_summary": "Candidate has strong data engineering experience with AWS and PySpark but lacks critical Azure-specific skills (DevOps, governance), Java, and deep Spark internals required for the role. Potential for growth with training but requires significant upskilling in Azure and Spark architecture.",
+        "verdict": "Pivot"
+      }
+    },
+    "deepseek-r1:14b": {
+      "avg": 7.5,
+      "result": {
+        "verdict": "Lateral",
+        "one_line_summary": "The candidate has relevant data engineering experience but lacks specific Azure expertise required for the role.",
+        "match_scores": {
+          "skills_match": 7,
+          "career_level_alignment": 9,
+          "experience_relevance": 8,
+          "culture_fit": 6
+        },
+        "tech_stack_analysis": {
+          "verdict": "The candidate has strong data engineering skills but lacks specific Azure and Spark internals expertise.",
+          "matches": [
+            "Python",
+            "SQL",
+            "Databricks",
+            "Data modeling",
+            "Team leadership"
+          ],
+          "gaps": [
+            "Azure ecosystem expertise",
+            "ANTLR v4 or custom DSLs/parsers",
+            "Deep understanding of Apache Spark Internals (Catalyst Optimizer, Logical Plans)",
+            "Java"
+          ]
+        }
+      }
+    },
+    "claude-haiku-4-5-20251001": {
+      "avg": 7.0,
+      "result": {
+        "one_line_summary": "Strong data engineering foundation with AWS expertise, but significant gaps in Azure ecosystem, Java proficiency, and specialized compiler/DSL knowledge required for this advanced role.",
+        "verdict": "Pivot",
+        "match_scores": {
+          "skills_match": 6,
+          "career_level_alignment": 8,
+          "experience_relevance": 7,
+          "culture_fit": 7
+        },
+        "tech_stack_analysis": {
+          "verdict": "Partial Match - Candidate has strong foundational data engineering skills but lacks critical Azure ecosystem expertise and specialized compiler/DSL knowledge. The role requires deep expertise in areas where candidate has limited demonstrated experience.",
+          "matches": [
+            "Python and SQL expertise",
+            "Data modeling and dimensional design (Kimball methodology)",
+            "Data warehousing architecture and optimization",
+            "Spark experience (PySpark for transformations)",
+            "Data pipeline orchestration and optimization",
+            "Leadership and mentoring experience",
+            "CI/CD and version control (Git/GitHub)",
+            "Data quality and governance practices",
+            "Agile/SDLC methodologies"
+          ],
+          "gaps": [
+            "Azure ecosystem (candidate is AWS-focused: Lambda, Glue, S3, Athena, Redshift)",
+            "Expert-level Java (candidate shows Python/SQL focus, no Java mentioned)",
+            "Apache Spark Internals expertise (Catalyst Optimizer, Logical Plans)",
+            "ANTLR v4 or custom DSL/Parser experience (not mentioned)",
+            "Abstract Syntax Tree (AST) construction experience (not mentioned)",
+            "Databricks and Delta Lake optimization (candidate uses Athena, not Databricks)",
+            "Azure DevOps (candidate uses GitHub, not Azure DevOps)",
+            "Azure security and governance (AD, NSG, encryption, compliance)",
+            "Relevant Azure certifications"
+          ]
+        }
+      }
+    }
+  },
+  "li-4373833061": {
+    "job": {
+      "id": "li-4373833061",
+      "title": "Senior Data Engineer",
+      "company": "KTek Resourcing",
+      "description": "**Role: Senior Data Engineer** \n\n\n\n\n**Mandatory Skills: Data Lake Storage, Azure Data Factory, RDD/DataFrame/SQL** \n\n\n\n\n**Location: Onsite\\- Mississauga (HCL Tech Office)** \n\n\n\n\n**Mode: Contract** \n\n\n\n\n  \n\n\n\n\n\n**Responsibilities:** \n\n\n\n* **Design, develop, optimize, and maintain scalable data pipelines using Databricks (Spark/Scala) on Azure.**\n* **Collaborate with cross\\-functional teams to deliver robust end\\-to\\-end data solutions.**\n* **Write efficient SQL queries for ETL processes, data validation, and reporting.**\n* **Optimize performance of complex data processing workflows.**\n* **Implement best practices for code quality, testing, deployment, and documentation.**\n* **Participate in code reviews and mentor junior engineers.**\n* **Work closely with stakeholders to understand business requirements and translate them into technical solutions.**\n* **Integrate data solutions with other applications; exposure to .Net APIs or React\\-based UIs is a plus.**\n\n\n\n**Required Skills \\& Qualifications:** \n\n\n\n* **Bachelor\u2019s or Master\u2019s degree in Computer Science or related field.**\n* **6\\+ years of hands\\-on experience in software engineering/data engineering roles.**\n* **Strong experience with Databricks platform for big data analytics.**\n* **Proficient in Scala programming language; solid understanding of Spark framework (RDD/DataFrame/SQL).**\n* **Hands\\-on experience working on Azure cloud services (e.g., Data Lake Storage, Azure Data Factory).**\n* **Strong background in Database design \\& development; excellent SQL skills (T\\-SQL/PLSQL etc.).**\n* **Understanding of CI/CD pipelines for automated deployments on cloud platforms.**\n* **Experience working within Agile/Scrum methodologies.**\n* **Advanced knowledge of Python for scripting, automation, and AI/ML development.**\n* **Familiarity with Langchain for integrating and orchestrating large language model workflows.**\n* **Hands\\-on experience with Azure OpenAI to leverage generative AI capabilities in applications.**\n* **Understanding of Vector Databases for efficient storage and retrieval of high\\-dimensional data embeddings, essential for semantic search and recommendation systems.**\n* **Knowledge of RAG (Retrieval\\-Augmented Generation) techniques to combine information retrieval with generative AI models for enhanced application intelligence.**"
+    },
+    "qwen3:14b": {
+      "avg": 76.25,
+      "result": {
+        "tech_stack_analysis": {
+          "gaps": [
+            "Azure Data Factory",
+            "Scala",
+            "Azure OpenAI",
+            "Vector Databases",
+            "RAG techniques",
+            "CI/CD pipelines on Azure"
+          ],
+          "matches": [
+            "Databricks",
+            "PySpark",
+            "SQL",
+            "Data Lake architecture"
+          ],
+          "verdict": "Pivot"
+        },
+        "match_scores": {
+          "career_level_alignment": 90,
+          "culture_fit": 85,
+          "experience_relevance": 70,
+          "skills_match": 60
+        },
+        "one_line_summary": "Strong Senior Data Engineer with AWS expertise and leadership experience, but requires transition to Azure and acquisition of specific AI/ML and cloud-native skills for this role.",
+        "verdict": "Pivot"
+      }
+    },
+    "deepseek-r1:14b": {
+      "avg": 7.5,
+      "result": {
+        "verdict": "Pivot",
+        "one_line_summary": "The candidate has strong data engineering skills but lacks specific experience with Azure services and Databricks using Scala, which are critical for the Senior Data Engineer role at KTek.",
+        "match_scores": {
+          "skills_match": 6,
+          "career_level_alignment": 8,
+          "experience_relevance": 7,
+          "culture_fit": 9
+        },
+        "tech_stack_analysis": {
+          "verdict": "The candidate has strong skills in data engineering and cloud technologies but lacks experience with Azure Data Factory, Databricks (Scala), and Azure OpenAI, which are key requirements for the role.",
+          "matches": [
+            "AWS services (Lambda, Glue, S3, Athena)",
+            "Databricks",
+            "DBT",
+            "SQL",
+            "Python"
+          ],
+          "gaps": [
+            "Azure Data Factory",
+            "Databricks with Scala",
+            "Azure OpenAI",
+            ".Net APIs or React-based UIs"
+          ]
+        }
+      }
+    },
+    "claude-haiku-4-5-20251001": {
+      "avg": 7.0,
+      "result": {
+        "one_line_summary": "Strong AWS/data warehouse specialist with excellent foundational skills but lacks critical Azure, Databricks, and Scala expertise required for this role.",
+        "verdict": "Pivot",
+        "match_scores": {
+          "skills_match": 6,
+          "career_level_alignment": 8,
+          "experience_relevance": 7,
+          "culture_fit": 7
+        },
+        "tech_stack_analysis": {
+          "verdict": "Significant cloud platform mismatch - candidate is AWS-native while role requires Azure-first approach. Missing Scala/Databricks expertise and emerging AI/ML stack (LangChain, Vector DBs, RAG).",
+          "matches": [
+            "SQL expertise (PostgreSQL, MS SQL, Snowflake, Redshift)",
+            "Data pipeline design and optimization",
+            "ETL/ELT processes and orchestration tools",
+            "Big data processing concepts (PySpark experience translates to Spark framework)",
+            "Python programming and scripting",
+            "CI/CD and infrastructure as code (Terraform, Docker, Kubernetes)",
+            "Data warehouse design and dimensional modeling",
+            "Mentoring and team leadership experience",
+            "Agile/Scrum methodology experience (implied from MLSE roles)"
+          ],
+          "gaps": [
+            "Azure cloud platform (no hands-on experience; candidate is AWS-focused)",
+            "Azure Data Factory (candidate used AWS Glue, Informatica, MageAI)",
+            "Databricks platform (candidate used Athena, Redshift, Snowflake)",
+            "Scala programming language (candidate uses Python, not Scala)",
+            "RDD/DataFrame/SQL in Spark context (has PySpark, not Scala Spark)",
+            "LangChain for LLM orchestration",
+            "Azure OpenAI integration",
+            "Vector Databases (Pinecone, Weaviate, Milvus, etc.)",
+            "RAG (Retrieval-Augmented Generation) techniques",
+            "Generative AI/ML development experience"
+          ]
+        }
+      }
+    }
+  },
+  "li-4373831782": {
+    "job": {
+      "id": "li-4373831782",
+      "title": "Senior Data Engineer",
+      "company": "SPECTRAFORCE",
+      "description": "**Title: Senior Data Engineer** \n\n\n\n\n**Duration: 12 months of assignment** \n\n\n\n\n**Location: Toronto, ON (Hybrid schedule, 3 days in office (Tues, Wed \\& Thur)** \n\n\n\n\n  \n\n\n\n\n\n**Mandatory:** \n Prior experience working with Banking or financial institutions.\n \n\n\n\n Experience with Python, AWS (SageMaker, AWS Unified Studio or other AWS tools).\n \n\n\n\n Proven experience in tech modernization/migration projects.\n \n\n\n\n\n\n\n\n**Role Description**\n\n\n\n\n \u2022 As a Senior Data Engineer, you will design, develop, and optimize data systems and pipelines to support client GAM\u2019s analytics and reporting capabilities. You will work closely with data analysts, BI engineers, and business stakeholders to ensure efficient data flow and enable data\\-driven decision\\-making.\n \n\n\n\n  \n\n\n\n\n\n**Key Responsibilities:**\n\n\n\n\n \u2022 Design and implement scalable data pipelines and ETL processes.\n \n\n\n\n \u2022 Develop and maintain data models and data warehouse infrastructure.\n \n\n\n\n \u2022 Collaborate with cross\\-functional teams to deliver analytic solutions.\n \n\n\n\n \u2022 Drive technology modernization and migration projects to modern platforms.\n \n\n\n\n \u2022 Optimize performance and reliability of data systems in cloud and on\\-prem environments.\n \n\n\n\n\n\n\n\n**Must Have**\n\n\n\n\n \u2022 5\\+ years of experience in Data Engineering and ETL development.\n \n\n\n\n \u2022 Strong proficiency in Python and SQL for data processing and automation.\n \n\n\n\n \u2022 Solid understanding of Data Modeling, Data Warehousing, and Analytics concepts.\n \n\n\n\n \u2022 Familiarity with AWS tools such as SageMaker, AWS Unified Studio, and other data services is highly desirable.\n \n\n\n\n \u2022 Proven experience in tech modernization/migration projects.\n \n\n\n\n \u2022 Strong problem\\-solving, communication, and collaboration skills.\n \n\n\n\n\n\n\n\n**Nice to Have**\n\n :\n \n\n\n\n\n \u2022 Experience with SAS and WebFOCUS for advanced analytics and reporting.\n \n\n\n\n \u2022 Exposure to machine learning workflows and data science integration using AWS SageMaker.\n \n\n\n\n \u2022 Knowledge of data governance, security, and compliance in cloud environments.\n \n\n\n\n \u2022 Familiarity with CI/CD pipelines for data engineering solutions.\n \n\n\n\n \u2022 Hands\\-on experience with cloud\\-based data platforms (AWS preferred).\n \n\n\n\n \u2022 Banking Industry"
+    },
+    "qwen3:14b": {
+      "avg": 90.0,
+      "result": {
+        "tech_stack_analysis": {
+          "gaps": [
+            "AWS SageMaker",
+            "AWS Unified Studio",
+            "SAS",
+            "WebFOCUS"
+          ],
+          "matches": [
+            "Python",
+            "AWS (Glue, Lambda, S3, Athena)",
+            "Data Warehousing (Snowflake, Redshift)",
+            "ETL (Informatica, PySpark, DBT)",
+            "Orchestration (Prefect, Terraform)"
+          ],
+          "verdict": "Lateral"
+        },
+        "match_scores": {
+          "career_level_alignment": 95,
+          "culture_fit": 90,
+          "experience_relevance": 90,
+          "skills_match": 85
+        },
+        "one_line_summary": "Strong Senior Data Engineer with 8+ years of experience in AWS, ETL, and data warehousing, but lacks specific SageMaker and financial industry experience mentioned in the job description.",
+        "verdict": "Lateral"
+      }
+    },
+    "deepseek-r1:14b": {
+      "avg": 7.5,
+      "result": {
+        "verdict": "Lateral",
+        "one_line_summary": "The candidate has strong technical skills and relevant experience, making them a good fit for the Senior Data Engineer role, though there may be some gaps in specific banking/financial sector experience.",
+        "match_scores": {
+          "skills_match": 9,
+          "career_level_alignment": 8,
+          "experience_relevance": 7,
+          "culture_fit": 6
+        },
+        "tech_stack_analysis": {
+          "verdict": "Strong technical foundation with some gaps in specific AWS tools relevant to the role.",
+          "matches": [
+            "Python",
+            "SQL",
+            "AWS (Lambda, Glue, S3, Athena)",
+            "DBT",
+            "Docker",
+            "Kubernetes",
+            "Orchestration tools (Dagster, Prefect)"
+          ],
+          "gaps": [
+            "Experience with SageMaker and AWS Unified Studio"
+          ]
+        }
+      }
+    },
+    "claude-haiku-4-5-20251001": {
+      "avg": 8.5,
+      "result": {
+        "one_line_summary": "Exceptional fit for Senior Data Engineer role with 8+ years of relevant experience, strong AWS expertise, proven tech modernization track record, but lacks specific banking/financial institution background.",
+        "verdict": "Step Up",
+        "match_scores": {
+          "skills_match": 9,
+          "career_level_alignment": 9,
+          "experience_relevance": 8,
+          "culture_fit": 8
+        },
+        "tech_stack_analysis": {
+          "verdict": "Strong alignment with core requirements and excellent coverage of modern data engineering stack",
+          "matches": [
+            "Python - demonstrated expertise with PySpark and general Python programming",
+            "AWS - extensive hands-on experience with Lambda, Glue, S3, Athena, ECR, SageMaker exposure potential",
+            "SQL - strong proficiency across PostgreSQL, MS SQL, Snowflake, Redshift",
+            "Data Modeling & Warehousing - proven expertise with dimensional modeling, star schema, DBT, Athena",
+            "ETL/Data Pipelines - extensive experience designing and optimizing pipelines at scale (1M+ rows/hour)",
+            "Tech Modernization - demonstrated success re-architecting from Informatica to AWS Lambda (100x performance improvement)",
+            "Cloud Infrastructure - Terraform, Docker, Kubernetes, infrastructure as code",
+            "Orchestration Tools - Dagster, Prefect, MageAI with custom Kubernetes integration",
+            "CI/CD & Version Control - Git, GitHub, Flyway",
+            "Data Governance - established data governance practices, data dictionaries, naming conventions"
+          ],
+          "gaps": [
+            "Banking/Financial Services industry experience - candidate background is sports/entertainment (MLSE, ticketing)",
+            "SAS - not mentioned in skill set",
+            "WebFOCUS - not mentioned in skill set",
+            "AWS SageMaker - not explicitly mentioned, though AWS expertise is strong",
+            "AWS Unified Studio - not explicitly mentioned",
+            "Machine Learning workflows - limited evidence of ML integration experience"
+          ]
+        }
+      }
+    }
+  },
+  "li-4373595388": {
+    "job": {
+      "id": "li-4373595388",
+      "title": "Senior Data Engineer",
+      "company": "Aarorn Technologies Inc",
+      "description": "Job Title: Senior Data Engineer\n   \n\n  \n\n Location: Toronto, ON (4x onsite a week)\n   \n\n  \n\n Employment Type: Contract\n   \n\n  \n\n Pay Rate: CAD$45 \\- $50/HR INC\n   \n\n  \n\n**Job Description**\n We are looking for an experienced Senior Data Engineer with strong expertise in the Hadoop ecosystem and Google Cloud Platform, particularly GCP Dataproc.\n   \n\n  \n\n The ideal candidate will have hands\\-on experience in modernizing data platforms, optimizing large\\-scale data processing workloads, and migrating Hive\\-based workloads to BigQuery.\n   \n\n  \n\n**Required Qualifications**\n* 6\u201310\\+ years of experience working within the Hadoop ecosystem, with deep expertise in Hive, Hive Metastore, and GCP Dataproc.\n* Strong hands\\-on experience with Dataproc Serverless, BigQuery, Google Cloud Storage (GCS), Cloud Composer, and Cloud Logging/Monitoring.\n* Solid understanding of table formats (Parquet, ORC), partitioning/bucketing strategies, and query performance optimization.\n* Proven experience migrating Hive datasets, tables, and SQL queries to BigQuery, including handling syntax differences, functions, UDFs, and performance tuning.\n* Strong knowledge of Security/IAM best practices, service accounts, and network/security controls; ability to operate within strict organization\\-level policies.\n\n\n**Nice\\-to\\-Have Skills**\n* Familiarity with Dataproc Metastore vs. standalone Hive Metastore, and experience with Glue or other metadata/catalog services.\n* Exposure to data quality frameworks and lineage tools (e.g., OpenLineage, Collibra).\n* A FinOps mindset, including experience managing quotas, reservations, and cost governance for Dataproc and BigQuery workloads.\n\n\n Disclaimer: AI tools may assist in the recruitment process; however, all hiring decisions are made by the recruitment team based on a comprehensive evaluation of candidates."
+    },
+    "qwen3:14b": {
+      "avg": 65.0,
+      "result": {
+        "match_scores": {
+          "career_level_alignment": 80,
+          "culture_fit": 90,
+          "experience_relevance": 40,
+          "skills_match": 50
+        },
+        "one_line_summary": "Candidate has strong data engineering experience with AWS and PySpark but lacks direct experience with required GCP/Hadoop stack (Dataproc, Hive, BigQuery) and migration expertise. Cultural fit is strong but technical alignment is limited.",
+        "verdict": "Pivot",
+        "tech_stack_analysis": {
+          "gaps": [
+            "Hadoop ecosystem",
+            "GCP Dataproc",
+            "Hive",
+            "BigQuery",
+            "Cloud Composer",
+            "Dataproc Serverless"
+          ],
+          "matches": [
+            "Python",
+            "SQL",
+            "PySpark",
+            "Cloud Infrastructure (AWS)"
+          ],
+          "verdict": "Pivot"
+        }
+      }
+    },
+    "deepseek-r1:14b": {
+      "avg": 5.75,
+      "result": {
+        "verdict": "Pivot",
+        "one_line_summary": "The candidate has strong data engineering skills but lacks expertise in Hadoop and Google Cloud Platform, which are critical for the Senior Data Engineer role at Aarorn Technologies Inc.",
+        "match_scores": {
+          "skills_match": 5,
+          "career_level_alignment": 8,
+          "experience_relevance": 4,
+          "culture_fit": 6
+        },
+        "tech_stack_analysis": {
+          "verdict": "The candidate has some relevant skills but significant gaps in Hadoop and Google Cloud Platform technologies required for the role.",
+          "matches": [
+            "Python",
+            "SQL",
+            "AWS (Lambda, Glue, S3, Athena)",
+            "DBT",
+            "Docker",
+            "Kubernetes"
+          ],
+          "gaps": [
+            "Hadoop ecosystem (Hive, Hive Metastore)",
+            "Google Cloud Platform (GCP Dataproc, BigQuery, GCS, Cloud Composer)",
+            "Security/IAM best practices"
+          ]
+        }
+      }
+    },
+    "claude-haiku-4-5-20251001": {
+      "avg": 6.25,
+      "result": {
+        "one_line_summary": "Strong data engineering foundation with AWS expertise, but significant GCP/Hadoop ecosystem gap makes this a challenging pivot requiring substantial ramp-up time.",
+        "verdict": "Pivot",
+        "match_scores": {
+          "skills_match": 5,
+          "career_level_alignment": 8,
+          "experience_relevance": 6,
+          "culture_fit": 6
+        },
+        "tech_stack_analysis": {
+          "verdict": "Significant platform mismatch - candidate is AWS-native with limited GCP exposure and no demonstrated Hadoop/Hive expertise",
+          "matches": [
+            "Data warehouse design and optimization (Athena vs BigQuery - similar concepts)",
+            "Large-scale data processing and pipeline optimization",
+            "SQL expertise and query performance tuning",
+            "Data modeling (dimensional modeling, star schema)",
+            "ETL/ELT pipeline design and implementation",
+            "Cloud infrastructure and IaC (Terraform)",
+            "Data governance and documentation practices",
+            "Team leadership and mentoring experience"
+          ],
+          "gaps": [
+            "GCP Dataproc (core requirement) - no demonstrated experience",
+            "BigQuery (core requirement) - no demonstrated experience",
+            "Hadoop ecosystem (Hive, Hive Metastore) - not mentioned in resume",
+            "Google Cloud Storage (GCS) - no experience listed",
+            "Cloud Composer - no experience listed",
+            "Hive-to-BigQuery migration patterns - no relevant experience",
+            "Dataproc Serverless - no experience",
+            "GCP IAM and security controls - AWS-focused instead",
+            "Table format optimization (Parquet/ORC) - limited evidence",
+            "Data quality frameworks and lineage tools - not demonstrated"
+          ]
+        }
+      }
+    }
+  },
+  "li-4373077012": {
+    "job": {
+      "id": "li-4373077012",
+      "title": "Data Engineer",
+      "company": "Adastra",
+      "description": "**Overview**\n Adastra is seeking a highly skilled Data Engineer with strong SQL expertise and hands\\-on experience working with large\\-scale data environments. This role will focus on designing, developing, and optimizing data warehouse solutions, partnering closely with business stakeholders to translate requirements into scalable data models and pipelines. The ideal candidate has strong technical depth, cloud experience (preferably AWS), and excellent communication skills to bridge technical and business teams effectively.\n   \n\n  \n\n**Location:** \n Across Canada \\& USA (Remote)\n   \n\n  \n\n**Status:** \n Contract\n   \n\n  \n\n**Responsibilities**\n* Design, develop, and maintain scalable data warehouse solutions and data pipelines\n* Write complex, high\\-performance SQL queries for data transformation, analysis, and optimization\n* Work with large datasets and implement best practices for data modeling and warehouse architecture\n* Partner with business users and stakeholders to gather requirements and translate them into technical solutions\n* Build and maintain ETL/ELT processes to ensure data accuracy, quality, and availability\n* Optimize performance within cloud\\-based data platforms\n* Collaborate with cross\\-functional teams including analytics, engineering, and business units\n* Ensure data governance, security, and best practices are followed\n\n\n**Qualifications, Skills \\& Experience**\n* Bachelor's degree in Computer Science, Information Systems, Engineering, or a related field\n* 5\\+ years of hands\\-on Data Engineering experience\n* Strong hands\\-on SQL expertise (advanced querying, optimization, performance tuning)\n* Experience working with Data Warehouse (DWH) concepts and large\\-scale data environments\n* Solid understanding of data modeling (star schema, dimensional modeling, normalization/denormalization)\n* Experience with cloud platforms (AWS preferred)\n* Hands\\-on experience with AWS Redshift and/or AWS Glue\n* Ability to work directly with business users to gather and clarify requirements\n* Strong communication skills \u2014 both technical and non\\-technical\n* Experience building and maintaining ETL/ELT pipelines\n* Knowledge of data quality, governance, and best practices\n\n\n**Nice to Have**\n* Working knowledge of Python for data engineering or automation\n* Experience with additional AWS services (S3, Lambda, Athena, etc.)\n* Experience working with Big Data frameworks\n* Familiarity with CI/CD and DevOps practices in data environments\n* Experience in Agile/Scrum environments\n\n\n**About Adastra**\n For more than 25 years, Adastra Corporation has been hyper\\-focused on data and the infrastructures to support it. We are an international consulting company working work with businesses and IT Leaders to extract value through data and analytic solutions in the domains of Cloud, Data Management, Analytics, AI and ML, Governance, Hyper Automation, and Enterprise Application Development. Our team of experts, combined with our worldclass data management platform, helps provide trusted insights, establish frameworks, enforce best practices, and streamline processes for around\\-the\\-clock global coverage. Adastra has a proven track record of helping organizations of all sizes \u2013 from SMEs to Fortune 1000s \u2013 achieve their data transformation goals, whether that be accelerating innovation, improving operational excellence, or creating unforgettable customer experiences.\n   \n\n  \n\n**What We Offer**\n* Opportunity for advancement and career progression\n* Competitive compensation\n* Successful referral program\n* The opportunity to work with one of Canada\u2019s 50 Best Managed Companies\n* Satisfaction of working for a reputable company\n* A flexible, dynamic, and diverse workplace\n\n\n**Equal Opportunity Employer**\n In our commitment to promote fair and equitable treatment of all employees and applicants, Adastra Corporation provides equal employment opportunities for all individuals regardless of age, sex, disability, race, ethnic origin, citizenship, creed, sexual orientation, marital status, or any other ground as described in the Ontario Human Rights Code. In addition, accommodation will be provided during the hiring process. Adastra Corporation \u2019 s implementation and support of employment initiatives, encourage diversified labour force participation and equal access to opportunities based on merit and performance.\n   \n\n  \n\n There has been an increased instance of fraudulent job offers coming from people posing as Adastra HR employees. Please note that Adastra will never request fees as part of our recruiting process and any emails sent to you that are not from \u2018@adastragrp.com\u2019 or \u2018@talent.icims.com\u2019 are fraudulent. All employment offers are sent via DocuSign and if you receive an employment offer from a suspicious email and not via DocuSign, it is fraudulent.\n   \n\n  \n\n Contact careers@adastragrp.com to inquire about jobs at Adastra, to report a suspicious request for money or personal information from external websites or suspicious employment offers."
+    },
+    "qwen3:14b": {
+      "avg": 95.75,
+      "result": {
+        "tech_stack_analysis": {
+          "gaps": [
+            "AWS EMR (mentioned in resume but not explicitly required)",
+            "Big Data frameworks (Hadoop/Spark mentioned indirectly via PySpark but not explicit"
+          ],
+          "matches": [
+            "AWS (Lambda, Glue, S3, Athena)",
+            "Redshift",
+            "SQL (advanced querying/optimization)",
+            "ETL/ELT (AWS Glue, Informatica, PySpark)",
+            "Data Warehousing (Athena, dimensional modeling)",
+            "Python"
+          ],
+          "verdict": "Lateral"
+        },
+        "match_scores": {
+          "career_level_alignment": 100,
+          "culture_fit": 90,
+          "experience_relevance": 98,
+          "skills_match": 95
+        },
+        "one_line_summary": "Highly qualified Data Engineer with 7+ years of experience in AWS data warehousing, ETL/ELT pipelines, and cloud optimization - excellent match for Adastra's requirements with minor gaps in specific big data frameworks",
+        "verdict": "Lateral"
+      }
+    },
+    "deepseek-r1:14b": {
+      "avg": 8.5,
+      "result": {
+        "verdict": "Step Up",
+        "one_line_summary": "The candidate has strong technical expertise in data engineering, particularly with AWS and SQL, and aligns well with the job requirements. They have relevant experience and could step up into a more senior or pivotal role.",
+        "match_scores": {
+          "skills_match": 9,
+          "career_level_alignment": 8,
+          "experience_relevance": 9,
+          "culture_fit": 8
+        },
+        "tech_stack_analysis": {
+          "verdict": "The candidate has a strong technical background with most of the required skills and some additional relevant experience.",
+          "matches": [
+            "AWS (Lambda, Glue, S3, Athena)",
+            "SQL",
+            "Data Warehousing (Redshift, Glue)",
+            "ETL/ELT pipelines",
+            "DBT",
+            "Docker",
+            "Kubernetes"
+          ],
+          "gaps": [
+            "Limited experience with additional AWS services beyond the core ones listed in the job description"
+          ]
+        }
+      }
+    },
+    "claude-haiku-4-5-20251001": {
+      "avg": 9.0,
+      "result": {
+        "one_line_summary": "Exceptional match for Data Engineer role with extensive hands-on experience exceeding requirements across SQL, AWS, data warehousing, and modern data stack tools.",
+        "verdict": "Step Up",
+        "match_scores": {
+          "skills_match": 9,
+          "career_level_alignment": 9,
+          "experience_relevance": 10,
+          "culture_fit": 8
+        },
+        "tech_stack_analysis": {
+          "verdict": "Outstanding alignment with all core requirements and nice-to-haves. Candidate brings advanced expertise in the exact tech stack and architectural patterns Adastra needs.",
+          "matches": [
+            "Advanced SQL expertise with performance optimization (demonstrated through 100x pipeline improvements)",
+            "AWS ecosystem mastery: Redshift, Glue, Lambda, S3, Athena, ECR",
+            "Data warehouse design: Star schema, dimensional modeling, Kimball methodology",
+            "ETL/ELT pipeline development and optimization",
+            "Data modeling (3NF normalization, dimensional modeling)",
+            "Python for data engineering (PySpark, scripting)",
+            "Modern data stack: DBT, Prefect, MageAI, Dagster",
+            "Cloud infrastructure: Terraform, Docker, Kubernetes",
+            "CI/CD and DevOps practices (Git, Flyway, infrastructure-as-code)",
+            "Big Data frameworks (PySpark, Databricks)",
+            "Data governance and quality practices",
+            "Cross-functional collaboration and stakeholder management"
+          ],
+          "gaps": [
+            "No explicit mention of Agile/Scrum experience (though likely given modern tech stack adoption)"
+          ]
+        }
+      }
+    }
+  }
+}
