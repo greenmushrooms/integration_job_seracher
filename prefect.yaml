@@ -5,25 +5,27 @@ push: null
 pull:
   - prefect.deployments.steps.set_working_directory:
       directory: /opt/prefect
+
+# Pipeline: midnight scrape → queue drains overnight → 8 AM notify
+# Both flows read active profiles from adm.job_search_config — no hardcoded params.
+# To add a profile: INSERT into adm.resume + adm.job_search_config, no redeploy needed.
+# To remove old job-search-deployment: delete it manually via Prefect UI or CLI.
+
 deployments:
-  - name: job-search-deployment
-    version: "1.0.1"
-    tags: ["jobs", "etl"]
-    description: "Job search and processing flow"
-    entrypoint: main.py:get_jobs
-    parameters:
-      title: "data engineer"
-      location: "Toronto, ON"
-      profile: "Slava"
-      searches: 10
+  - name: load-jobs
+    version: "2.0.0"
+    tags: ["jobs", "scrape", "queue"]
+    description: "Scrape jobs for all active profiles and push to LLM queue"
+    entrypoint: main.py:load_jobs_flow
+    parameters: {}
     schedule:
-      cron: "0 7 * * *"
+      cron: "0 0 * * *"
       timezone: "America/Toronto"
     work_pool:
       name: dev-pool-docker
       work_queue_name: default
       job_variables:
-        image: "integration-job-searcher:latest"
+        image: "job-searcher:latest"
         image_pull_policy: "Never"
         networks: ["project-hub-network"]
         working_dir: "/opt/prefect"
@@ -34,6 +36,37 @@ deployments:
           DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
           DB_PASSWORD: "{{ prefect.blocks.secret.job-searcher--database-password }}"
           DB_NAME: "{{ prefect.blocks.secret.job-searcher--database-name }}"
-          ANTHROPIC_API_KEY: "{{ prefect.blocks.secret.job-searcher--anthropic-api-key }}"
+          LLM_QUEUE_DSN: "{{ prefect.blocks.secret.job-searcher--llm-queue-dsn }}"
+          LLM_QUEUE_TOPIC: "job_eval"
+          LLM_QUEUE_WORKER_URL: "http://llm-queue-worker:8080"
           TELEGRAM_BOT_TOKEN: "{{ prefect.blocks.secret.job-searcher--telegram-bot-token }}"
-          TELEGRAM_CHAT_ID: "{{ prefect.blocks.secret.job-searcher--telegram-chat-id }}"
+
+  - name: notify-matches
+    version: "2.0.0"
+    tags: ["jobs", "notify"]
+    description: "Drain LLM queue results for all active profiles and send Telegram alerts"
+    entrypoint: main.py:notify_matches_flow
+    parameters:
+      min_score: 6.9
+    schedule:
+      cron: "0 8 * * *"
+      timezone: "America/Toronto"
+    work_pool:
+      name: dev-pool-docker
+      work_queue_name: default
+      job_variables:
+        image: "job-searcher:latest"
+        image_pull_policy: "Never"
+        networks: ["project-hub-network"]
+        working_dir: "/opt/prefect"
+        env:
+          PREFECT_API_URL: "http://prefect-server-dev:4200/api"
+          DB_HOST: "{{ prefect.blocks.secret.job-searcher--database-host }}"
+          DB_PORT: "{{ prefect.blocks.secret.job-searcher--database-port }}"
+          DB_USER: "{{ prefect.blocks.secret.job-searcher--database-user }}"
+          DB_PASSWORD: "{{ prefect.blocks.secret.job-searcher--database-password }}"
+          DB_NAME: "{{ prefect.blocks.secret.job-searcher--database-name }}"
+          LLM_QUEUE_DSN: "{{ prefect.blocks.secret.job-searcher--llm-queue-dsn }}"
+          LLM_QUEUE_TOPIC: "job_eval"
+          LLM_QUEUE_WORKER_URL: "http://llm-queue-worker:8080"
+          TELEGRAM_BOT_TOKEN: "{{ prefect.blocks.secret.job-searcher--telegram-bot-token }}"

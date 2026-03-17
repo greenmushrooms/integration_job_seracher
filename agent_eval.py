@@ -63,7 +63,10 @@ class ClaudeJobEvaluator:
                             "culture_fit",
                         ],
                     },
-                    "one_line_summary": {"type": "string"},
+                    "one_line_summary": {
+                        "type": "string",
+                        "description": "One sentence on why THIS job is or isn't a fit — focus on the role's unique requirements or gaps, not the candidate's background.",
+                    },
                 },
                 "required": [
                     "tech_stack_analysis",
