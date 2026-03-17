@@ -82,7 +82,13 @@ CA_PROVINCES = {
 }
 
 
+UK_TERMS = {"United Kingdom", "UK", "England", "Scotland", "Wales", "London"}
+
+
 def _country_for_location(location: str) -> str:
+    for term in UK_TERMS:
+        if term in location:
+            return "uk"
     for province in CA_PROVINCES:
         if province in location:
             return "canada"
