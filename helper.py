@@ -70,17 +70,18 @@ def format_job_message_telegram(job, index: int, total: int) -> str:
     return message
 
 
-def format_summary_message_telegram(jobs, run_name: str) -> str:
+def format_summary_message_telegram(jobs, run_name: str, profile: str = "") -> str:
     avg_of_avgs = sum(job[3] for job in jobs) / len(jobs) if jobs else 0
+    profile_line = f"👤 <b>{profile}</b>\n" if profile else ""
     message = f"""
 🎯 <b>JOB SEARCH RESULTS</b>
-Run: <code>{run_name}</code>
-Found: <b>{len(jobs)}</b> Matches
+{profile_line}Run: <code>{run_name}</code>
+Found: <b>{len(jobs)}</b> Matches | Avg: <b>{avg_of_avgs:.1f}/10</b>
 
 <b>Top Matches:</b>
 """
     for i, job in enumerate(jobs[:3], 1):
-        message += f"\n{i}. {job[0]} ({job[3]:.1f}/10)"
+        message += f"\n{i}. {job[0]} @ {job[1]} ({job[3]:.1f}/10)"
 
     message += f"\n\n📬 Details below..."
     return message
