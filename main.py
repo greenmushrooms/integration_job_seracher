@@ -115,9 +115,10 @@ def load_search_configs() -> list[dict]:
 
 
 def load_resume(profile: str) -> tuple[str, str]:
-    """Load (resume_body, telegram_chat_id) for a profile."""
+    """Load (resume_body, telegram_chat_id) for a profile.
+    Returns resume_json as string if available, otherwise raw resume_body."""
     query = text("""
-        SELECT resume_body, telegram_chat_id
+        SELECT resume_body, telegram_chat_id, resume_json
         FROM adm.resume
         WHERE profile = :profile AND is_active = TRUE
         ORDER BY updated_at DESC
@@ -126,7 +127,9 @@ def load_resume(profile: str) -> tuple[str, str]:
     with get_db_engine().connect() as conn:
         result = conn.execute(query, {"profile": profile}).fetchone()
     if result:
-        return result[0], result[1]
+        resume_body, telegram_chat_id, resume_json = result
+        resume = json.dumps(resume_json) if resume_json else resume_body
+        return resume, telegram_chat_id
     raise ValueError(f"No active resume found for profile: {profile}")
 
 
