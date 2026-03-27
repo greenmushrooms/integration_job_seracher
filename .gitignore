@@ -1,2 +1,25 @@
 .env
 __pycache__/
+.venv/
+
+# Test results, caches, experiment artifacts
+batch_results.json
+scripts/extract_eval_results.csv
+scripts/extract_eval_results.json
+scripts/phase3d_results.json
+scripts/phase3e_results.json
+scripts/new_extract_cache*.json
+scripts/eval/extract_cache_*.json
+scripts/eval/results_*.json
+scripts/cache_test_run.md
+
+# Model test outputs
+qwen_test/
+
+# One-off / scratch scripts
+PIPELINE_TODO.md
+push_unevaluated.py
+
+# dbt
+data__job_searcher/target/
+data__job_searcher/logs/

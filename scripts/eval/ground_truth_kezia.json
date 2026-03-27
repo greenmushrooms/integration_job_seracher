@@ -1,0 +1,182 @@
+[
+  {
+    "job_id": "in-7fcfb930800d1c59",
+    "title": "Sr. Technical Business Analyst (Client Analytics)",
+    "company": "Scotiabank",
+    "verdict": "Step Up",
+    "avg": 7.5,
+    "scores": {"skills_match": 8, "career_level_alignment": 8, "experience_relevance": 7, "culture_fit": 7},
+    "summary": "Sr. TBA for data platform modernization at Scotiabank; same function, one title level higher, slight DE skills gap"
+  },
+  {
+    "job_id": "in-383459c78ee8a783",
+    "title": "IT Business Analyst (AI Programme)",
+    "company": "STATES OF JERSEY",
+    "verdict": "Lateral",
+    "avg": 6.5,
+    "scores": {"skills_match": 7, "career_level_alignment": 7, "experience_relevance": 7, "culture_fit": 5},
+    "summary": "IT BA driving AI adoption and governance at a legal/government org in Jersey, UK; AI enablement BA role"
+  },
+  {
+    "job_id": "in-eb3783eda39282fa",
+    "title": "System Documentation Analyst",
+    "company": "Geographic Solutions Inc",
+    "verdict": "Lateral",
+    "avg": 6.0,
+    "scores": {"skills_match": 7, "career_level_alignment": 6, "experience_relevance": 6, "culture_fit": 5},
+    "summary": "System documentation analyst but actual scope is BA work: use cases, process flows, data models, stakeholder workshops"
+  },
+  {
+    "job_id": "in-5f6198db850d0cb2",
+    "title": "Sr. Business Operations Analyst (Salesforce Administration)",
+    "company": "BTI Solutions",
+    "verdict": "Lateral",
+    "avg": 7.0,
+    "scores": {"skills_match": 8, "career_level_alignment": 7, "experience_relevance": 7, "culture_fit": 6},
+    "summary": "Sr. Salesforce admin + business ops at staffing firm; direct CRM/Salesforce match but less technical scope"
+  },
+  {
+    "job_id": "in-43cfd11eab1cac0e",
+    "title": "Sr. Manager, Finance Analytics Engineering",
+    "company": "Verily",
+    "verdict": "Pivot",
+    "avg": 5.0,
+    "scores": {"skills_match": 4, "career_level_alignment": 7, "experience_relevance": 3, "culture_fit": 6},
+    "summary": "Manager-level finance data architecture + BI engineering at Verily; requires Python/data engineering — wrong technical track"
+  },
+  {
+    "job_id": "in-68551f9123fc9e1f",
+    "title": "Power Platform Center of Excellence (CoE) Lead",
+    "company": "Chevo Consulting",
+    "verdict": "Pivot",
+    "avg": 4.8,
+    "scores": {"skills_match": 4, "career_level_alignment": 7, "experience_relevance": 4, "culture_fit": 4},
+    "summary": "Hands-on Power Platform engineering + governance lead for US federal client; developer role beyond BA skill set"
+  },
+  {
+    "job_id": "in-3cccb8c0dbb0dcad",
+    "title": "Senior Solutions Consultant",
+    "company": "Heartland Business Systems",
+    "verdict": "Pivot",
+    "avg": 5.0,
+    "scores": {"skills_match": 5, "career_level_alignment": 7, "experience_relevance": 4, "culture_fit": 4},
+    "summary": "Technology sales + advisory consultant at IT solutions firm; sales quota is core function, not BA"
+  },
+  {
+    "job_id": "in-cabb2e385192916d",
+    "title": "2026 UK Advanced Apprenticeship: IT Analyst",
+    "company": "Mott MacDonald",
+    "verdict": "Title Regression",
+    "avg": 2.5,
+    "scores": {"skills_match": 4, "career_level_alignment": 1, "experience_relevance": 3, "culture_fit": 2},
+    "summary": "Level 3 IT apprenticeship for students in Newcastle UK; absurdly below MSc + 5yr professional"
+  },
+  {
+    "job_id": "in-80012a7bb37bc35f",
+    "title": "Senior Yield Data Analyst",
+    "company": "The Hearst Corporation",
+    "verdict": "Pivot",
+    "avg": 4.3,
+    "scores": {"skills_match": 3, "career_level_alignment": 7, "experience_relevance": 2, "culture_fit": 5},
+    "summary": "Ad-tech yield optimization analyst at media giant; requires Python + programmatic advertising expertise — wrong specialization"
+  },
+  {
+    "job_id": "in-7bfdb13b19c76fb1",
+    "title": "Business Intelligence Analyst",
+    "company": "Heritage Federal Credit Union",
+    "verdict": "Pivot",
+    "avg": 5.5,
+    "scores": {"skills_match": 5, "career_level_alignment": 6, "experience_relevance": 5, "culture_fit": 6},
+    "summary": "BI analyst at credit union; function shift from BA to data analysis/reporting despite SQL + CRM Analytics overlap"
+  },
+  {
+    "job_id": "in-4be39eaac95bbc6c",
+    "title": "Data Analyst",
+    "company": "Flint Hills Resources",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 3, "career_level_alignment": 6, "experience_relevance": 3, "culture_fit": 2},
+    "summary": "Python + SQL data analyst at oil/chemical refinery in Kansas; requires Python proficiency, industrial domain — wrong profile"
+  },
+  {
+    "job_id": "in-3fa5cf8e605b24e4",
+    "title": "Senior SharePoint & Power BI Developer",
+    "company": "Diaconia",
+    "verdict": "Pivot",
+    "avg": 4.5,
+    "scores": {"skills_match": 4, "career_level_alignment": 7, "experience_relevance": 3, "culture_fit": 4},
+    "summary": "Hands-on SharePoint and Power BI developer for US federal programs; developer role vs analyst role"
+  },
+  {
+    "job_id": "in-630ae7899d80de30",
+    "title": "Software Engineer (Python)",
+    "company": "Scotiabank",
+    "verdict": "Pivot",
+    "avg": 4.5,
+    "scores": {"skills_match": 2, "career_level_alignment": 7, "experience_relevance": 2, "culture_fit": 7},
+    "summary": "Python software engineer for analytics platform modernization at Scotiabank; engineering vs analysis — wrong function"
+  },
+  {
+    "job_id": "in-69b35bcfc1bfea7a",
+    "title": "Management Analyst II",
+    "company": "Synectic Solutions Inc",
+    "verdict": "Pivot",
+    "avg": 4.5,
+    "scores": {"skills_match": 5, "career_level_alignment": 6, "experience_relevance": 4, "culture_fit": 3},
+    "summary": "US Navy defense management analyst; process analysis adjacent to BA but US Navy experience + 7yr hard requirement"
+  },
+  {
+    "job_id": "in-478dd13cb7cfd65d",
+    "title": "Fire Project Manager",
+    "company": "Johnson Controls",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 2, "career_level_alignment": 6, "experience_relevance": 2, "culture_fit": 4},
+    "summary": "Fire suppression systems PM at Johnson Controls; requires fire/HVAC technical knowledge — completely wrong domain"
+  },
+  {
+    "job_id": "in-3c916eb2aaeb64fa",
+    "title": "Consultant Psychiatrist in Child and Adolescent Psychiatry",
+    "company": "GREAT ORMOND STREET HOSPITAL",
+    "verdict": "Pivot",
+    "avg": 2.3,
+    "scores": {"skills_match": 1, "career_level_alignment": 6, "experience_relevance": 1, "culture_fit": 1},
+    "summary": "NHS consultant psychiatrist at UK children's hospital; medical profession, requires psychiatric degree — completely wrong domain"
+  },
+  {
+    "job_id": "in-141b559138ebfb7c",
+    "title": "Home Construction and Renovation Project Manager/Estimator",
+    "company": "Woodcastle Homes Ltd.",
+    "verdict": "Pivot",
+    "avg": 2.5,
+    "scores": {"skills_match": 1, "career_level_alignment": 6, "experience_relevance": 1, "culture_fit": 2},
+    "summary": "Residential construction PM/estimator at custom home builder; construction domain, AutoCAD, Procore — completely wrong domain"
+  },
+  {
+    "job_id": "in-09f1bd1318b657bf",
+    "title": "Executive Assistant to the Chief Financial Officer",
+    "company": "Foundation For The Carolinas",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 3, "career_level_alignment": 4, "experience_relevance": 2, "culture_fit": 5},
+    "summary": "EA to CFO at nonprofit; different function entirely (admin support vs BA/SDLC), not same track lower level"
+  },
+  {
+    "job_id": "in-21c41ef36a571ea8",
+    "title": "Design Coordinator",
+    "company": "Charcoalblue",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 3, "career_level_alignment": 5, "experience_relevance": 2, "culture_fit": 4},
+    "summary": "Experiential design coordination at creative event consultancy; design/creative domain — wrong function and domain"
+  },
+  {
+    "job_id": "in-5c8c1a18d0bba825",
+    "title": "Interim Business Data Insight Analyst - 6 Months",
+    "company": "Triumvirate Environmental",
+    "verdict": "Pivot",
+    "avg": 5.3,
+    "scores": {"skills_match": 5, "career_level_alignment": 6, "experience_relevance": 5, "culture_fit": 5},
+    "summary": "6-month interim BI/analytics analyst; function shift from BA to data analysis/reporting, similar to Heritage BI"
+  }
+]

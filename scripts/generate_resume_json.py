@@ -41,7 +41,7 @@ RESUME_JSONS = {
                 "title": "Data Engineer",
                 "duration_years": 4,
                 "key_achievements": [
-                    "Redesigned ticketing data warehouse with dbt and star schema",
+                    "Pioneered dbt adoption at MLSE — introduced framework, built data warehouse with star schema",
                     "Integrated diverse sources via AWS Glue, Lambda, Informatica",
                     "Mentored junior engineers, established style guides"
                 ]
@@ -70,7 +70,8 @@ RESUME_JSONS = {
             {"degree": "BA Economics", "school": "McMaster University"}
         ],
         "certifications": [],
-        "notes": []
+        "notes": [],
+        "target_compensation": 150000
     },
 
     "Kezia": {

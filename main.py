@@ -2,6 +2,8 @@ import json
 import os
 from datetime import datetime, timedelta
 
+from rapidfuzz import fuzz
+
 import pandas as pd
 import requests
 from jobspy import scrape_jobs
@@ -14,6 +16,67 @@ from agent_eval import ClaudeJobEvaluator
 from helper import format_job_message_telegram, format_summary_message_telegram
 
 USE_QUEUE = os.getenv("USE_QUEUE", "false").lower() == "true"
+
+
+# ---------------------------------------------------------------------------
+# Profile-specific fewshot eval prompt builder (v3_fewshot variant)
+# ---------------------------------------------------------------------------
+
+_FEWSHOT_EXAMPLES = {
+    "Slava": """
+Example 1 — Pivot:
+Job: {"title": "Pharmacy Technician", "summary": "Dispense medications, manage inventory, assist pharmacists in a retail pharmacy setting. Requires pharmacy technician certification."}
+{"verdict": "Pivot", "match_scores": {"skills_match": 1, "career_level_alignment": 4, "experience_relevance": 1, "culture_fit": 3}, "job_in_one_line": "Retail pharmacy technician role dispensing medications", "why_you_fit": "No relevant overlap with data engineering background", "key_gap": "Completely different domain and function — requires pharmacy certification"}
+
+Example 2 — Lateral:
+Job: {"title": "Senior Data Engineer", "summary": "Build and maintain cloud data pipelines using Spark, Python, and dbt. Design data models, mentor junior engineers, collaborate with analytics teams."}
+{"verdict": "Lateral", "match_scores": {"skills_match": 9, "career_level_alignment": 7, "experience_relevance": 9, "culture_fit": 7}, "job_in_one_line": "Senior DE role building data pipelines with dbt and Spark", "why_you_fit": "Direct stack match — Python, dbt, cloud pipelines, mentoring all align with current experience", "key_gap": "Senior title is one level below current Lead DE role"}
+
+Example 3 — Step Up:
+Job: {"title": "Staff Data Engineer / Tech Lead", "summary": "Technical lead for data platform engineering team. Own architecture decisions, lead 5-8 engineers, set engineering standards across the org, interface with VP-level stakeholders."}
+{"verdict": "Step Up", "match_scores": {"skills_match": 8, "career_level_alignment": 9, "experience_relevance": 8, "culture_fit": 7}, "job_in_one_line": "Staff-level DE tech lead owning platform architecture and team leadership", "why_you_fit": "Current Lead DE experience with mentoring and architecture directly prepares for Staff-level ownership", "key_gap": "Larger team scope and VP-level stakeholder management is a stretch"}""",
+
+    "Kezia": """
+Example 1 — Pivot:
+Job: {"title": "Electrician Apprentice", "summary": "Install and maintain electrical systems in residential and commercial buildings. Requires electrical apprenticeship certification and physical site work."}
+{"verdict": "Pivot", "match_scores": {"skills_match": 1, "career_level_alignment": 3, "experience_relevance": 1, "culture_fit": 2}, "job_in_one_line": "Trades apprenticeship in electrical installation and maintenance", "why_you_fit": "No relevant overlap with business analysis or Salesforce background", "key_gap": "Completely different domain — requires trades certification and physical site work"}
+
+Example 2 — Lateral:
+Job: {"title": "Business Systems Analyst", "summary": "Gather requirements from stakeholders, document processes, manage Salesforce CRM configuration, support Agile delivery teams with user stories and UAT testing."}
+{"verdict": "Lateral", "match_scores": {"skills_match": 9, "career_level_alignment": 7, "experience_relevance": 9, "culture_fit": 7}, "job_in_one_line": "BSA role with Salesforce, Agile delivery and requirements gathering", "why_you_fit": "Direct match — Salesforce, Agile, user stories, UAT are core to current role at MLSE", "key_gap": "Same seniority level with no meaningful career step up"}
+
+Example 3 — Step Up:
+Job: {"title": "Lead Business Analyst / Product Owner", "summary": "Lead a team of BAs, own the product backlog, drive roadmap decisions with C-suite stakeholders, accountable for delivery across multiple workstreams."}
+{"verdict": "Step Up", "match_scores": {"skills_match": 8, "career_level_alignment": 9, "experience_relevance": 8, "culture_fit": 7}, "job_in_one_line": "Lead BA/PO role with team ownership and executive stakeholder management", "why_you_fit": "Strong BA foundation with Agile and SDLC experience positions well for team lead ownership", "key_gap": "Managing a team of BAs and C-suite accountability is a meaningful stretch beyond current scope"}""",
+}
+
+def build_eval_prompt(profile: str) -> str:
+    """Build profile-specific v3_fewshot eval prompt.
+
+    Uses {{placeholder}} syntax for Go router variable substitution.
+    Examples are embedded inline — no Python .format() so no brace escaping needed.
+    """
+    examples = _FEWSHOT_EXAMPLES.get(profile, "")
+    return (
+        "You are an honest career advisor.\n\n"
+        + examples
+        + "\n\n--- NOW EVALUATE ---\n"
+        "Candidate:\n{{candidate_json}}\n\n"
+        "Job:\nTitle: {{title}}\nSummary: {{summary}}\n\n"
+        "Return JSON only:\n"
+        "{\n"
+        '  "verdict": "Step Up" | "Lateral" | "Title Regression" | "Pivot",\n'
+        '  "match_scores": {\n'
+        '    "skills_match": <1-10>,\n'
+        '    "career_level_alignment": <1-10>,\n'
+        '    "experience_relevance": <1-10>,\n'
+        '    "culture_fit": <1-10>\n'
+        '  },\n'
+        '  "job_in_one_line": "what this role does and its domain/industry",\n'
+        '  "why_you_fit": "strongest overlap between candidate and this role in one sentence",\n'
+        '  "key_gap": "biggest mismatch, risk, or missing requirement in one sentence"\n'
+        "}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +128,8 @@ def send_telegram_message(message_text: str, chat_id: str) -> bool:
     try:
         response = requests.post(url, data=data)
         result = response.json()
+        if not result["ok"]:
+            print(f"Telegram rejected message: {result.get('description')} — preview: {message_text[:120]}")
         return result["ok"]
     except Exception as e:
         print(f"Error sending message: {e}")
@@ -148,21 +213,44 @@ def load_telegram_chat_id(profile: str) -> str:
     raise ValueError(f"No telegram_chat_id found for profile: {profile}")
 
 
-def load_jobs(profile: str, limit: int = 3) -> pd.DataFrame:
+def _is_blocked(title: str, blocklist: list[str], threshold: int = 85) -> bool:
+    title_lower = title.lower()
+    return any(
+        fuzz.partial_ratio(title_lower, term.lower()) >= threshold
+        for term in blocklist
+    )
+
+
+def load_jobs(profile: str, limit: int = 3, hours: int = 72) -> pd.DataFrame:
     query = text("""
-        SELECT id, description, title, company
+        SELECT j.id, j.description, j.title, j.company,
+               COALESCE(c.blocklist, '{}'::text[]) AS blocklist
         FROM public.jobspy_jobs j
-        WHERE sys_profile = :profile
+        LEFT JOIN adm.job_search_config c ON c.profile = j.sys_profile
+        WHERE j.sys_profile = :profile
+          AND j.date_posted >= CURRENT_DATE - MAKE_INTERVAL(hours => :hours)
           AND NOT EXISTS (
               SELECT 1 FROM public.evaluated_jobs e
               WHERE e.job_id = j.id
           )
-        ORDER BY id DESC
+        ORDER BY j.id DESC
         LIMIT :limit
     """)
     with get_db_engine().connect() as conn:
-        df = pd.read_sql_query(query, conn, params={"profile": profile, "limit": limit})
-    return df
+        df = pd.read_sql_query(query, conn, params={"profile": profile, "limit": limit, "hours": hours})
+
+    if df.empty:
+        return df
+
+    blocklist = df["blocklist"].iloc[0] or []
+    if blocklist:
+        before = len(df)
+        df = df[~df["title"].apply(lambda t: _is_blocked(str(t), blocklist))]
+        blocked = before - len(df)
+        if blocked:
+            print(f"Blocked {blocked} jobs for {profile} via fuzzy blocklist")
+
+    return df.drop(columns=["blocklist"])
 
 
 # ---------------------------------------------------------------------------
@@ -171,19 +259,23 @@ def load_jobs(profile: str, limit: int = 3) -> pd.DataFrame:
 
 @task()
 def find_and_process(
-    title: str, location: str, profile: str, searches: int = 60
+    title: str, location: str, profile: str, searches: int = 70
 ) -> DataFrame:
     country = _country_for_location(location)
-    jobs = scrape_jobs(
-        site_name=["indeed", "linkedin", "google"],
-        search_term=title,
-        google_search_term=f"{title} jobs near {location} since yesterday",
-        location=location,
-        results_wanted=searches,
-        hours_old=72,
-        country_indeed=country,
-        linkedin_fetch_description=True,
-    )
+    try:
+        jobs = scrape_jobs(
+            site_name=["indeed", "linkedin", "google"],
+            search_term=title,
+            google_search_term=f"{title} jobs near {location} since yesterday",
+            location=location,
+            results_wanted=searches,
+            hours_old=72,
+            country_indeed=country,
+            linkedin_fetch_description=True,
+        )
+    except Exception as e:
+        print(f"WARNING: scrape failed for '{title}' in {location}: {e}")
+        return DataFrame()
     jobs["sys_run_name"] = runtime.flow_run.name
     jobs["sys_profile"] = profile
 
@@ -204,16 +296,28 @@ def run_dbt():
 
 
 @task()
-def send_telegram_notifications(jobs, run_name: str, chat_id: str, profile: str = ""):
-    if not jobs:
+def send_telegram_notifications(region_jobs, run_name: str, chat_id: str, profile: str = "", total_evaluated: int = 0):
+    if not region_jobs:
         print("No jobs to send")
         return
-    summary = format_summary_message_telegram(jobs, run_name, profile)
+    # region_jobs is list of (region, job_row)
+    jobs = [job for _, job in region_jobs]
+    summary = format_summary_message_telegram(region_jobs, run_name, profile, total_evaluated)
     send_telegram_message(summary, chat_id)
-    for i, job in enumerate(jobs, 1):
-        job_message = format_job_message_telegram(job, i, len(jobs))
+
+    current_region = None
+    idx = 0
+    for region, job in region_jobs:
+        if region != current_region:
+            current_region = region
+            idx = 0
+            region_count = sum(1 for r, _ in region_jobs if r == region)
+            header = f"{REGION_EMOJI.get(region, '🌍')} <b>{REGION_LABEL.get(region, region.title())}</b> — {region_count} match{'es' if region_count != 1 else ''}"
+            send_telegram_message(header, chat_id)
+        idx += 1
+        job_message = format_job_message_telegram(job, idx, sum(1 for r, _ in region_jobs if r == region))
         send_telegram_message(job_message, chat_id)
-    print(f"Sent {len(jobs) + 1} Telegram messages for {profile}")
+    print(f"Sent Telegram messages for {profile}: {len(jobs)} jobs across regions")
 
 
 # ---------------------------------------------------------------------------
@@ -223,29 +327,40 @@ def send_telegram_notifications(jobs, run_name: str, chat_id: str, profile: str 
 def _push_profile_to_queue(
     profile: str, resume: str, jobs_df: pd.DataFrame, run_name: str
 ) -> int:
-    """Push unevaluated jobs for a profile onto the LLM queue. Returns count pushed."""
+    """Push unevaluated jobs for a profile onto the LLM queue as two-stage DAG.
+
+    Pushes to job_extract (7B) which auto-creates job_eval (14B) with depends_on.
+    The scheduler sees the DAG and batches by model to minimize swaps.
+    """
     from llm_queue import LLMQueueClient
 
     dsn = os.getenv("LLM_QUEUE_DSN")
     worker_url = os.getenv("LLM_QUEUE_WORKER_URL")
-    topic = os.getenv("LLM_QUEUE_TOPIC", "job_eval")
 
     payloads = [
         {
             "job_id": str(job.get("id")),
             "company": job.get("company", ""),
             "title": job.get("title", ""),
-            "description": job.get("description", ""),
-            "resume": resume,
             "sys_profile": profile,
             "sys_run_name": run_name,
+            "pack_id": run_name,
+            "inputs": {
+                "description": job.get("description", ""),
+            },
+            "next_step": {
+                "topic": "job_eval",
+                "step": "eval",
+                "prompt": build_eval_prompt(profile),
+                "inputs": {"candidate_json": resume},
+            },
         }
         for _, job in jobs_df.iterrows()
     ]
 
     client = LLMQueueClient(dsn=dsn, worker_url=worker_url)
-    task_ids = client.push_batch(topic, payloads)
-    print(f"Pushed {len(task_ids)} jobs for {profile} to queue")
+    task_ids = client.push_batch("job_extract", payloads)
+    print(f"Pushed {len(task_ids)} jobs for {profile} to job_extract queue")
     return len(task_ids)
 
 
@@ -254,7 +369,7 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
     Read all 'done' queue tasks for a profile not yet in evaluated_jobs.
     Writes results to evaluated_jobs. Returns list of written job_ids.
     """
-    topic = os.getenv("LLM_QUEUE_TOPIC", "job_eval")
+    topic = "job_eval"
 
     # Existing evaluated job_ids for this profile
     existing_query = text(
@@ -282,20 +397,24 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
         print(f"No new queue results for {profile} ({len(rows)} total done in queue)")
         return []
 
+    CANONICAL_KEYS = {"skills_match", "career_level_alignment", "experience_relevance", "culture_fit"}
+
     result_rows = []
     written_ids = []
     for payload, result in new_rows:
         scores = result.get("match_scores", {})
-        avg_score = sum(scores.values()) / len(scores) if scores else 0
+        # Only average the 4 canonical keys — ignore any extra keys the model invented
+        canonical = {k: v for k, v in scores.items() if k in CANONICAL_KEYS}
+        avg_score = sum(canonical.values()) / len(canonical) if canonical else 0
         result_rows.append({
             "job_id": payload["job_id"],
             "avg_score": avg_score,
-            "match_scores": json.dumps(scores),
+            "match_scores": json.dumps(canonical),
             "reasoning": json.dumps({
                 "verdict": result.get("verdict"),
-                "tech_stack": result.get("tech_stack_analysis"),
-                "summary": result.get("one_line_summary"),
-                "comparisons": [],
+                "summary": result.get("job_in_one_line") or result.get("one_line_summary") or result.get("summary"),
+                "why_you_fit": result.get("why_you_fit"),
+                "key_gap": result.get("key_gap"),
             }),
             "sys_run_name": run_name,
             "sys_profile": profile,
@@ -307,28 +426,61 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
     return written_ids
 
 
+REGION_EMOJI = {"canada": "🇨🇦", "uk": "🇬🇧", "usa": "🇺🇸"}
+REGION_LABEL = {"canada": "Canada", "uk": "United Kingdom", "usa": "United States"}
+
+
 def _get_top_jobs_for_profile(
-    profile: str, min_score: float = 6.9, hours: int = 48
+    profile: str, min_score: float = 6.9, hours: int = 48, per_region: int = 10
 ):
-    """Top scored jobs for a profile evaluated within the last N hours."""
+    """Top scored jobs per region for a profile, unsent, within the last N hours."""
     since = datetime.utcnow() - timedelta(hours=hours)
     query = text("""
         SELECT
             j.title, j.company, j.location,
             e.avg_score, e.match_scores, e.reasoning,
-            COALESCE(j.job_url_direct, j.job_url) as job_url
+            COALESCE(j.job_url_direct, j.job_url) as job_url,
+            e.job_id
         FROM public.evaluated_jobs e
         INNER JOIN public.jobspy_jobs j ON e.job_id = j.id
         WHERE e.sys_profile = :profile
           AND e.avg_score >= :min_score
           AND e.created_at >= :since
+          AND e.notified_at IS NULL
+          AND j.date_posted >= CURRENT_DATE - INTERVAL '3 days'
         ORDER BY e.avg_score DESC
-        LIMIT 20
+        LIMIT 200
     """)
     with get_db_engine().connect() as conn:
-        return conn.execute(
+        all_jobs = conn.execute(
             query, {"profile": profile, "min_score": min_score, "since": since}
         ).fetchall()
+
+    # Group top N per region
+    buckets: dict[str, list] = {"canada": [], "uk": [], "usa": []}
+    for job in all_jobs:
+        region = _country_for_location(job[2] or "")
+        if len(buckets[region]) < per_region:
+            buckets[region].append(job)
+
+    # Return ordered: canada → uk → usa, preserving region info
+    result = []
+    for region in ("canada", "uk", "usa"):
+        result.extend((region, job) for job in buckets[region])
+    return result
+
+
+def _mark_jobs_notified(job_ids: list[str]) -> None:
+    if not job_ids:
+        return
+    query = text("""
+        UPDATE public.evaluated_jobs
+        SET notified_at = NOW()
+        WHERE job_id = ANY(:job_ids)
+    """)
+    with get_db_engine().connect() as conn:
+        conn.execute(query, {"job_ids": job_ids})
+        conn.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -339,7 +491,7 @@ def _get_top_jobs_for_profile(
 def load_jobs_flow():
     """
     Scrape jobs for ALL active profiles and push to LLM queue.
-    Schedule: midnight Toronto — queue drains overnight with local LLM.
+    Schedule: 6 PM Toronto — queue drains overnight with local LLM.
     """
     configs = load_search_configs()
     print(f"Running for {len(configs)} profiles: {[c['profile'] for c in configs]}")
@@ -390,9 +542,11 @@ def notify_matches_flow(min_score: float = 6.9):
         chat_id = load_telegram_chat_id(profile)
 
         if jobs:
-            send_telegram_notifications(jobs, run_name, chat_id, profile)
+            job_ids = [job[-1] for _, job in jobs]
+            send_telegram_notifications(jobs, run_name, chat_id, profile, total_evaluated=len(written))
+            _mark_jobs_notified(job_ids)
         else:
-            print(f"No qualifying jobs (>= {min_score}) for {profile}")
+            print(f"No qualifying jobs (>= {min_score}) for {profile} ({len(written)} evaluated)")
 
 
 # ---------------------------------------------------------------------------

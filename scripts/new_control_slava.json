@@ -1,0 +1,182 @@
+[
+  {
+    "job_id": "li-4338989335",
+    "title": "Analytics Engineer",
+    "company": "Alliants",
+    "verdict": "Lateral",
+    "avg": 6.5,
+    "scores": {"skills_match": 7, "career_level_alignment": 7, "experience_relevance": 7, "culture_fit": 5},
+    "summary": "Contract analytics engineering role maintaining BI/data platform; Azure/Power BI/Oracle stack gap vs AWS/dbt"
+  },
+  {
+    "job_id": "in-ddcbcfec708f9ce1",
+    "title": "AI & Data Engineer",
+    "company": "RBC",
+    "verdict": "Lateral",
+    "avg": 7.0,
+    "scores": {"skills_match": 7, "career_level_alignment": 7, "experience_relevance": 7, "culture_fit": 7},
+    "summary": "DE + ML engineering for RBC marketing campaigns; big data pipelines + ML model maintenance"
+  },
+  {
+    "job_id": "li-4375956508",
+    "title": "Analytics Engineer",
+    "company": "CDAI",
+    "verdict": "Lateral",
+    "avg": 8.0,
+    "scores": {"skills_match": 9, "career_level_alignment": 7, "experience_relevance": 9, "culture_fit": 7},
+    "summary": "dbt data transformation, pipeline quality and scalability — direct stack match"
+  },
+  {
+    "job_id": "in-ae1b8b7885cae87b",
+    "title": "Analyst, Portfolio Research - Data Engineer",
+    "company": "TD",
+    "verdict": "Title Regression",
+    "avg": 5.8,
+    "scores": {"skills_match": 7, "career_level_alignment": 4, "experience_relevance": 7, "culture_fit": 5},
+    "summary": "$80-120K Analyst-level DE in TD wealth management; Analyst title + 20-40% pay cut for Lead DE"
+  },
+  {
+    "job_id": "li-4252714741",
+    "title": "AI and Data - Manager - Solution Architect/Tech Lead",
+    "company": "EY",
+    "verdict": "Step Up",
+    "avg": 7.0,
+    "scores": {"skills_match": 7, "career_level_alignment": 8, "experience_relevance": 7, "culture_fit": 6},
+    "summary": "Manager-level data architecture + consulting at Big 4; client delivery, team leadership, architecture ownership"
+  },
+  {
+    "job_id": "in-a0d15fa967e7aee3",
+    "title": "Applied AI Data Engineer",
+    "company": "RBC",
+    "verdict": "Lateral",
+    "avg": 7.3,
+    "scores": {"skills_match": 8, "career_level_alignment": 7, "experience_relevance": 7, "culture_fit": 7},
+    "summary": "RBC Wealth AI lab DE bridging data engineering and MLOps; comparable seniority with AI specialization growth"
+  },
+  {
+    "job_id": "li-4381907300",
+    "title": "AI Data Engineer",
+    "company": "BMO",
+    "verdict": "Lateral",
+    "avg": 7.0,
+    "scores": {"skills_match": 8, "career_level_alignment": 6, "experience_relevance": 7, "culture_fit": 7},
+    "summary": "Cloud-native AI data engineering at BMO; drops Lead title but enterprise AI scope comparable"
+  },
+  {
+    "job_id": "in-235965b432706652",
+    "title": "Apache Spark lead",
+    "company": "Wipro",
+    "verdict": "Lateral",
+    "avg": 6.5,
+    "scores": {"skills_match": 7, "career_level_alignment": 7, "experience_relevance": 6, "culture_fit": 5},
+    "summary": "Development lead for Spark/Java/Scala ETL team at Wipro; leadership + ETL transfer well, Java/Scala is learnable gap"
+  },
+  {
+    "job_id": "in-764712110bcfc60c",
+    "title": "2026 CFO, Summer Data Engineer (8 months)",
+    "company": "RBC",
+    "verdict": "Title Regression",
+    "avg": 3.5,
+    "scores": {"skills_match": 5, "career_level_alignment": 1, "experience_relevance": 4, "culture_fit": 4},
+    "summary": "Co-op/intern 8-month DE role at RBC CFO group; student position, absurdly below 9yr Lead DE"
+  },
+  {
+    "job_id": "in-4ffddaa92af67e4d",
+    "title": "2026 Wealth Management, Summer Data Analyst",
+    "company": "RBC",
+    "verdict": "Title Regression",
+    "avg": 3.5,
+    "scores": {"skills_match": 5, "career_level_alignment": 1, "experience_relevance": 4, "culture_fit": 4},
+    "summary": "Student internship across RBC wealth management data teams; Data Analyst intern for 9yr Lead DE"
+  },
+  {
+    "job_id": "in-3cf939de087826a1",
+    "title": "Account Executive, Commercial",
+    "company": "DocuSign",
+    "verdict": "Pivot",
+    "avg": 2.3,
+    "scores": {"skills_match": 1, "career_level_alignment": 4, "experience_relevance": 1, "culture_fit": 3},
+    "summary": "B2B SaaS sales role managing territory and closing new accounts; pure sales, zero technical overlap"
+  },
+  {
+    "job_id": "in-9277040ca5f684b7",
+    "title": "3rd Class Power Engineer",
+    "company": "OxyChem",
+    "verdict": "Pivot",
+    "avg": 1.8,
+    "scores": {"skills_match": 1, "career_level_alignment": 3, "experience_relevance": 1, "culture_fit": 2},
+    "summary": "Chemical plant operations/power engineering in manufacturing; industrial domain, requires engineering certification"
+  },
+  {
+    "job_id": "in-c86890c9d54ede48",
+    "title": "Accounts Payable & Business Analyst",
+    "company": "FELLFAB Limited",
+    "verdict": "Pivot",
+    "avg": 2.8,
+    "scores": {"skills_match": 2, "career_level_alignment": 4, "experience_relevance": 2, "culture_fit": 3},
+    "summary": "AP processing + data analysis hybrid in textile manufacturing; wrong domain and function"
+  },
+  {
+    "job_id": "in-0e34187d5dfcfd5c",
+    "title": "Agentic AI Developer",
+    "company": "CGI",
+    "verdict": "Pivot",
+    "avg": 5.5,
+    "scores": {"skills_match": 5, "career_level_alignment": 6, "experience_relevance": 5, "culture_fit": 6},
+    "summary": "Building Agentic AI/LLM automation workflows for CGI clients; LLM/NLP primary, DE secondary — wrong specialization"
+  },
+  {
+    "job_id": "li-4385082905",
+    "title": "AI and Data - Senior Consultant - Data Scientist",
+    "company": "EY",
+    "verdict": "Pivot",
+    "avg": 4.8,
+    "scores": {"skills_match": 4, "career_level_alignment": 7, "experience_relevance": 3, "culture_fit": 5},
+    "summary": "Data science and ML consulting at EY; requires ML/statistics depth — data science vs data engineering domain gap"
+  },
+  {
+    "job_id": "in-0753574d1a5c935a",
+    "title": "Actuarial Data Engineer - Centralized Data Solutions",
+    "company": "Lincoln Financial Group",
+    "verdict": "Lateral",
+    "avg": 6.5,
+    "scores": {"skills_match": 7, "career_level_alignment": 7, "experience_relevance": 6, "culture_fit": 6},
+    "summary": "DE role in actuarial/insurance using Dataiku; core function is ETL/pipelines/governance — same career path, different stack"
+  },
+  {
+    "job_id": "li-4385604575",
+    "title": "Analyst",
+    "company": "Insight Global",
+    "verdict": "Pivot",
+    "avg": 2.0,
+    "scores": {"skills_match": 2, "career_level_alignment": 2, "experience_relevance": 2, "culture_fit": 2},
+    "summary": "Menu content & price management analyst for QSR brand; 1-2 years experience required, wrong domain and level"
+  },
+  {
+    "job_id": "in-2a146301dd54a3c0",
+    "title": "AI and DSP Applications - Senior UI Software Engineer",
+    "company": "Qualcomm",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 2, "career_level_alignment": 6, "experience_relevance": 2, "culture_fit": 4},
+    "summary": "GUI tooling for AI/DSP hardware at Qualcomm; C++/Qt UI engineering for semiconductor — wrong function entirely"
+  },
+  {
+    "job_id": "in-997f8fc141e0ac40",
+    "title": "AI Product Manager, Merchant Experience",
+    "company": "Groupon",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 2, "career_level_alignment": 5, "experience_relevance": 2, "culture_fit": 5},
+    "summary": "Product management for merchant-facing AI at Groupon; PM role with roadmaps/backlog — wrong function"
+  },
+  {
+    "job_id": "in-f22a6f890366d5c0",
+    "title": "Agile Product Coach",
+    "company": "NTT DATA",
+    "verdict": "Pivot",
+    "avg": 3.5,
+    "scores": {"skills_match": 2, "career_level_alignment": 5, "experience_relevance": 2, "culture_fit": 5},
+    "summary": "Agile coaching / delivery facilitation at NTT DATA; sprint planning, backlog coaching — wrong function"
+  }
+]

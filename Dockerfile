@@ -18,7 +18,12 @@ RUN pip install --no-cache-dir \
     beautifulsoup4 \
     lxml \
     "psycopg2-binary==2.9.9" \
-    "dbt-postgres>=1.8.1"
+    "dbt-postgres>=1.8.1" \
+    rapidfuzz
+
+# Patch jobspy LinkedIn bug: job_level can be None, .lower() crashes
+RUN sed -i 's/job_details.get("job_level", "").lower()/(job_details.get("job_level") or "").lower()/' \
+    /usr/local/lib/python3.12/site-packages/jobspy/linkedin/__init__.py
 
 COPY . /opt/prefect/
 

@@ -6,7 +6,7 @@ pull:
   - prefect.deployments.steps.set_working_directory:
       directory: /opt/prefect
 
-# Pipeline: midnight scrape → queue drains overnight → 8 AM notify
+# Pipeline: 6 PM scrape → queue drains overnight → 8 AM notify
 # Both flows read active profiles from adm.job_search_config — no hardcoded params.
 # To add a profile: INSERT into adm.resume + adm.job_search_config, no redeploy needed.
 # To remove old job-search-deployment: delete it manually via Prefect UI or CLI.
@@ -19,7 +19,7 @@ deployments:
     entrypoint: main.py:load_jobs_flow
     parameters: {}
     schedule:
-      cron: "0 0 * * *"
+      cron: "0 18 * * *"
       timezone: "America/Toronto"
     work_pool:
       name: dev-pool-docker

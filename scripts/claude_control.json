@@ -1,0 +1,362 @@
+[
+  {
+    "job_id": "li-4377018253",
+    "title": "Data Engineer",
+    "company": "TekStaff",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "data engineering",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Lateral",
+    "scores": {
+      "skills_match": 9,
+      "career_level_alignment": 7,
+      "experience_relevance": 9,
+      "culture_fit": 6
+    },
+    "avg": 7.8,
+    "summary": "Strong stack match (AWS/dbt/Python/Spark) but contract via staffing agency, likely below $150k target."
+  },
+  {
+    "job_id": "in-290633ee2965c8a2",
+    "title": "Lead Product Analyst",
+    "company": "Scribd",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "product analytics",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 5,
+      "career_level_alignment": 7,
+      "experience_relevance": 6,
+      "culture_fit": 6
+    },
+    "avg": 6.0,
+    "summary": "Product analytics role, not data engineering — wrong function despite shared SQL tooling."
+  },
+  {
+    "job_id": "li-4386307997",
+    "title": "Advisor BI & Data Engineer",
+    "company": "City of Brampton",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "data engineering / government",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Title Regression",
+    "scores": {
+      "skills_match": 8,
+      "career_level_alignment": 5,
+      "experience_relevance": 8,
+      "culture_fit": 5
+    },
+    "avg": 6.5,
+    "summary": "DWH/ETL stack aligns well but Advisor level is a step down and government pay ($87-98k) is far below target."
+  },
+  {
+    "job_id": "in-3fb9e93fdd02d41d",
+    "title": "DevOps Engineer",
+    "company": "TCS",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "data storage / DevOps",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 3,
+      "career_level_alignment": 5,
+      "experience_relevance": 4,
+      "culture_fit": 6
+    },
+    "avg": 4.5,
+    "summary": "Delphix-specific data masking/ops role — wrong stack and function, not data engineering."
+  },
+  {
+    "job_id": "in-4bcf3fc0483efcc4",
+    "title": "BI Specialist",
+    "company": "TD",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "business intelligence / banking",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Title Regression",
+    "scores": {
+      "skills_match": 5,
+      "career_level_alignment": 5,
+      "experience_relevance": 6,
+      "culture_fit": 7
+    },
+    "avg": 5.8,
+    "summary": "Overqualified for a BI Specialist role heavy on VBA and UAT, though TD is a good employer."
+  },
+  {
+    "job_id": "li-4385018687",
+    "title": "Technical Business Analyst O2C",
+    "company": "Astir",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "ERP / finance operations",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 4,
+      "experience_relevance": 3,
+      "culture_fit": 3
+    },
+    "avg": 3.0,
+    "summary": "O2C/ERP business analysis in Pennsylvania — wrong domain, wrong location, wrong function."
+  },
+  {
+    "job_id": "in-1312cba6f3d46c1c",
+    "title": "System Analyst",
+    "company": "TCS",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "payment systems / IT",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 3,
+      "career_level_alignment": 4,
+      "experience_relevance": 4,
+      "culture_fit": 4
+    },
+    "avg": 3.8,
+    "summary": "Payment systems analyst at a consulting shop — adjacent to tech but not data engineering."
+  },
+  {
+    "job_id": "in-5b29876b95d790b8",
+    "title": "Business Analyst",
+    "company": "Key Food",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "retail / business analysis",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 4,
+      "experience_relevance": 2,
+      "culture_fit": 3
+    },
+    "avg": 2.8,
+    "summary": "Non-technical retail BA role in New Jersey — completely wrong domain and location."
+  },
+  {
+    "job_id": "in-50c8748c768e2f50",
+    "title": "Cloud Infrastructure Delivery",
+    "company": "Amazon Web Services",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "cloud infrastructure",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 6,
+      "career_level_alignment": 6,
+      "experience_relevance": 5,
+      "culture_fit": 6
+    },
+    "avg": 5.8,
+    "summary": "AWS platform knowledge overlaps but this is infrastructure delivery not data engineering, and requires French in Montreal."
+  },
+  {
+    "job_id": "li-4370606419",
+    "title": "Senior Analyst Strategy & Operations",
+    "company": "Scotiabank",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "strategy / financial operations",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 3,
+      "career_level_alignment": 5,
+      "experience_relevance": 3,
+      "culture_fit": 3
+    },
+    "avg": 3.5,
+    "summary": "Strategy and operations analyst role — non-technical function with no data engineering component."
+  },
+  {
+    "job_id": "in-1783da45863c66c0",
+    "title": "AI Data Engineer",
+    "company": "Deloitte",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "data engineering / AI/LLM",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Step Up",
+    "scores": {
+      "skills_match": 9,
+      "career_level_alignment": 8,
+      "experience_relevance": 9,
+      "culture_fit": 6
+    },
+    "avg": 8.0,
+    "summary": "Excellent skills match on GenAI/LLM pipelines + cloud; step up in scope, slight concern about consulting travel culture."
+  },
+  {
+    "job_id": "in-73f45ab65515bc5a",
+    "title": "Computer Systems Analyst",
+    "company": "Craftner",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "legacy ERP / systems analysis",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 2,
+      "experience_relevance": 2,
+      "culture_fit": 2
+    },
+    "avg": 2.0,
+    "summary": "PeopleSoft/COBOL legacy systems analyst in McLean VA — completely wrong stack, wrong location, wrong level."
+  },
+  {
+    "job_id": "in-a0c5c60f9ff09fde",
+    "title": "Pharmacy Assistant",
+    "company": "One Healthcare",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "healthcare / pharmacy",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 1,
+      "career_level_alignment": 1,
+      "experience_relevance": 1,
+      "culture_fit": 1
+    },
+    "avg": 1.0,
+    "summary": "Pharmacy assistant role — entirely unrelated to data engineering in every dimension."
+  },
+  {
+    "job_id": "li-4387991366",
+    "title": "Business Analyst Fraud Operations AI",
+    "company": "Optomi",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "fraud operations / business analysis",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 4,
+      "career_level_alignment": 5,
+      "experience_relevance": 5,
+      "culture_fit": 4
+    },
+    "avg": 4.5,
+    "summary": "BA/QA role with AI label in fraud domain via staffing agency — not a data engineering position."
+  },
+  {
+    "job_id": "in-592e5841f9a16d5f",
+    "title": "Senior Partner Consultant",
+    "company": "Amazon Web Services",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "partner/business consulting",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 4,
+      "career_level_alignment": 6,
+      "experience_relevance": 5,
+      "culture_fit": 4
+    },
+    "avg": 4.8,
+    "summary": "AWS platform knowledge is relevant but this is a partner-facing business consulting role, not a technical engineering position."
+  },
+  {
+    "job_id": "li-4387748514",
+    "title": "Business Analyst IT III",
+    "company": "Robertson",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "IT governance / software BA",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 3,
+      "career_level_alignment": 5,
+      "experience_relevance": 4,
+      "culture_fit": 4
+    },
+    "avg": 4.0,
+    "summary": "Software governance BA role via staffing agency — adjacent to tech but not data engineering."
+  },
+  {
+    "job_id": "li-4377515148",
+    "title": "Business Analyst Store Technology",
+    "company": "Primark",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "retail technology / business analysis",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 4,
+      "experience_relevance": 3,
+      "culture_fit": 3
+    },
+    "avg": 3.0,
+    "summary": "Retail store tech BA on a fixed-term contract — wrong domain, wrong function, wrong contract type."
+  },
+  {
+    "job_id": "in-4f4b2d67d4f0190f",
+    "title": "Senior Operations Research Analyst",
+    "company": "Noblis",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "nuclear defense / operations research",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 4,
+      "experience_relevance": 1,
+      "culture_fit": 2
+    },
+    "avg": 2.3,
+    "summary": "Nuclear defense operations research requiring TS/SCI clearance in DC — completely outside Slava's domain and location."
+  },
+  {
+    "job_id": "in-5786658763ac8049",
+    "title": "Data Center Chief Engineer",
+    "company": "Amazon",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "data center / physical infrastructure",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Pivot",
+    "scores": {
+      "skills_match": 2,
+      "career_level_alignment": 5,
+      "experience_relevance": 1,
+      "culture_fit": 2
+    },
+    "avg": 2.5,
+    "summary": "Physical data center facilities engineering — despite 'data' in title, entirely hardware/electrical, not software."
+  },
+  {
+    "job_id": "in-8abe8673798de6fd",
+    "title": "Director of GenAI & Machine Learning",
+    "company": "RBC",
+    "extract_s": 0.0,
+    "eval_s": 0.0,
+    "domain": "AI/ML / financial services",
+    "extract_parsed": {"_control": "claude manual"},
+    "verdict": "Step Up",
+    "scores": {
+      "skills_match": 7,
+      "career_level_alignment": 8,
+      "experience_relevance": 7,
+      "culture_fit": 7
+    },
+    "avg": 7.3,
+    "summary": "Director-level GenAI/ML at RBC is an ambitious step up; data engineering background relevant but ML depth and Master's degree are gaps."
+  }
+]
