@@ -611,20 +611,47 @@ HTML = """<!DOCTYPE html>
   .slider-label { color: #8b949e; font-size: 0.85em; white-space: nowrap; }
   .slider-val { color: #58a6ff; font-weight: 700; min-width: 40px; }
   canvas { max-width: 100%; }
+  #profileSel { background:#0d1117; color:#58a6ff; border:1px solid #1f6feb; border-radius:6px;
+                padding:6px 12px; font-family:inherit; font-size:0.95em; font-weight:600; cursor:pointer; }
+  #profileSel:hover { background:#161b22; }
+  .profile-label { color:#8b949e; font-size:0.85em; margin-right:6px; }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 8px; font-size: 10px; }
+    .toolbar .btn, #autoBtn, #updated, .tab-bar, .slider-wrap, .error-msg, #profileSel { display: none !important; }
+    .toolbar { margin-bottom: 8px; }
+    .toolbar h1 { font-size: 14px; color: #000; }
+    .toolbar::after {
+      content: "Profile: " attr(data-profile) "  ·  Generated: " attr(data-generated);
+      color: #555; font-size: 10px; margin-left: 12px;
+    }
+    .tab-content { display: block !important; page-break-after: auto; }
+    .tab-content + .tab-content { page-break-before: always; }
+    .card { background: #fff; border: 1px solid #ccc; color: #000; page-break-inside: avoid; padding: 10px; }
+    .card h2 { color: #333; font-size: 10px; }
+    .grid { gap: 8px; max-width: 100%; grid-template-columns: 1fr 1fr; }
+    .metric .label, .metric .value, td, th { color: #000; }
+    .badge { color: #000 !important; background: #eee !important; border: 1px solid #999; }
+    .badge.done, .badge.completed { background: #dfd !important; }
+    .badge.pending { background: #ffd !important; }
+    .badge.failed { background: #fdd !important; }
+    canvas { max-height: 220px; }
+    a { color: #036; text-decoration: underline; }
+  }
 </style>
 </head>
 <body>
 
-<div class="toolbar">
+<div class="toolbar" id="toolbar">
   <h1>📊 Pipeline Dashboard</h1>
+  <span class="profile-label">Profile:</span>
+  <select id="profileSel" onchange="onProfileChange()">
+    <option>Slava</option>
+  </select>
   <button class="btn" onclick="refreshCurrent()">↻ Refresh</button>
   <button class="btn" id="autoBtn" onclick="toggleAuto()">Auto: OFF</button>
-  <label class="slider-label" style="margin-left:auto">Profile:
-    <select id="profileSel" onchange="onProfileChange()" style="background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:4px 8px;font-family:inherit;font-size:0.85em">
-      <option>Slava</option>
-    </select>
-  </label>
-  <span id="updated"></span>
+  <button class="btn" onclick="printReport()" title="Open browser print dialog — choose 'Save as PDF' as destination">🖨️ Print / PDF</button>
+  <span id="updated" style="margin-left:auto"></span>
 </div>
 
 <div class="tab-bar">
@@ -795,6 +822,24 @@ function onProfileChange() {
   currentProfile = document.getElementById('profileSel').value;
   jobsData = null; insightsData = null;
   if (currentTab === 'matches') { loadJobs(); loadInsights(); }
+}
+
+async function printReport() {
+  // Make sure both tabs have data, then print. Browser's print dialog has 'Save as PDF'.
+  const tb = document.getElementById('toolbar');
+  tb.dataset.profile = currentProfile;
+  tb.dataset.generated = new Date().toLocaleString();
+  refreshPipeline();
+  if (!jobsData) loadJobs();
+  if (!insightsData) loadInsights();
+  // Wait briefly for charts/tables to render
+  await new Promise(r => setTimeout(r, 800));
+  // Force both tab-content blocks visible for the print, then restore
+  const contents = document.querySelectorAll('.tab-content');
+  const prev = [...contents].map(c => c.classList.contains('active'));
+  contents.forEach(c => c.classList.add('active'));
+  window.print();
+  contents.forEach((c, i) => { if (!prev[i]) c.classList.remove('active'); });
 }
 
 function fmtEta(sec) {
