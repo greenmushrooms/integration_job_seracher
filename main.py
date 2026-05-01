@@ -147,13 +147,23 @@ CA_PROVINCES = {
 }
 
 
-UK_TERMS = {"United Kingdom", "UK", "England", "Scotland", "Wales", "London"}
+UK_TERMS = {"United Kingdom", "England", "Scotland", "Wales"}
+# Country-code suffixes jobspy emits (e.g. 'Cheltenham, ENG, GB', 'Remote, GB').
+UK_SUFFIXES = (", GB", ", ENG, GB", ", SCT, GB", ", WLS, GB", ", NIR, GB")
 
 
 def _country_for_location(location: str) -> str:
+    """Fallback classifier for rows missing sys_country. Prefer j.sys_country
+    (set from country_indeed at scrape time) over this string-parse heuristic."""
+    if not location:
+        return "usa"
+    if location.endswith(UK_SUFFIXES) or location == "GB":
+        return "uk"
     for term in UK_TERMS:
         if term in location:
             return "uk"
+    # 'London' alone is ambiguous (London, Ontario / New London, CT) — only
+    # treat as UK when paired with a UK qualifier, handled above.
     for province in CA_PROVINCES:
         if province in location:
             return "canada"
@@ -278,6 +288,7 @@ def find_and_process(
         return DataFrame()
     jobs["sys_run_name"] = runtime.flow_run.name
     jobs["sys_profile"] = profile
+    jobs["sys_country"] = country
 
     print(f"Found {len(jobs)} jobs for '{title}' in {location}")
     write_to_db(jobs, "jobspy", "import_jobs")
@@ -440,7 +451,7 @@ def _get_top_jobs_for_profile(
             j.title, j.company, j.location,
             e.avg_score, e.match_scores, e.reasoning,
             COALESCE(j.job_url_direct, j.job_url) as job_url,
-            e.job_id
+            e.job_id, j.sys_country
         FROM public.evaluated_jobs e
         INNER JOIN public.jobspy_jobs j ON e.job_id = j.id
         WHERE e.sys_profile = :profile
@@ -459,7 +470,9 @@ def _get_top_jobs_for_profile(
     # Group top N per region
     buckets: dict[str, list] = {"canada": [], "uk": [], "usa": []}
     for job in all_jobs:
-        region = _country_for_location(job[2] or "")
+        region = job[8] or _country_for_location(job[2] or "")
+        if region not in buckets:
+            region = _country_for_location(job[2] or "")
         if len(buckets[region]) < per_region:
             buckets[region].append(job)
 
@@ -542,7 +555,7 @@ def notify_matches_flow(min_score: float = 6.9):
         chat_id = load_telegram_chat_id(profile)
 
         if jobs:
-            job_ids = [job[-1] for _, job in jobs]
+            job_ids = [job[7] for _, job in jobs]
             send_telegram_notifications(jobs, run_name, chat_id, profile, total_evaluated=len(written))
             _mark_jobs_notified(job_ids)
         else:
