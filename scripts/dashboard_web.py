@@ -742,7 +742,7 @@ HTML = """<!DOCTYPE html>
     <h2>💰 Compensation Distribution</h2>
     <div class="slider-wrap">
       <span class="slider-label">Min score filter:</span>
-      <input type="range" id="scoreSlider" min="6.9" max="9.5" step="0.1" value="6.9" oninput="activeCompBin=null; updateCompHist(); document.getElementById('jobsFilterLabel').textContent=''; renderTopJobs(recentJobs(jobsData.top_jobs||[]));">
+      <input type="range" id="scoreSlider" min="6.9" max="9.5" step="0.1" value="6.9" oninput="activeCompBin=null; updateCompHist(); document.getElementById('jobsFilterLabel').textContent=rangeLabel(); renderTopJobs(recentJobs(jobsData.top_jobs||[]));">
       <span class="slider-val" id="sliderVal">6.9</span>
       <span class="slider-label" id="compCount"></span>
     </div>
@@ -750,8 +750,24 @@ HTML = """<!DOCTYPE html>
     <div style="margin-top:6px;font-size:0.75em;color:#484f58">Click a bar to filter the jobs table below · click again to clear</div>
   </div>
 
-  <div class="card full">
-    <h2>🏆 Top Matches <span id="jobsFilterLabel" style="color:#58a6ff;font-size:0.85em;font-weight:400">— last 4 weeks</span></h2>
+  <div class="card full" id="topJobsCard">
+    <h2 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span>🏆 Top Matches</span>
+      <span id="jobsFilterLabel" style="color:#58a6ff;font-size:0.85em;font-weight:400">— last 4 weeks</span>
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center;font-weight:400;text-transform:none;letter-spacing:normal">
+        <label style="font-size:0.78em;color:#8b949e">Range:
+          <select id="jobsRange" onchange="onJobsRangeChange()" style="background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:3px 8px;font-family:inherit;font-size:0.85em">
+            <option value="1">1 week</option>
+            <option value="4" selected>4 weeks</option>
+            <option value="12">12 weeks</option>
+            <option value="0">All time</option>
+          </select>
+        </label>
+        <label style="font-size:0.78em;color:#8b949e;display:flex;align-items:center;gap:4px;cursor:pointer">
+          <input type="checkbox" id="jobsHide" onchange="onJobsHideChange()" style="accent-color:#58a6ff"> Hide table
+        </label>
+      </span>
+    </h2>
     <div id="topJobsContent">Loading...</div>
   </div>
 
@@ -1022,10 +1038,36 @@ function loadJobs() {
     });
 }
 
-function recentJobs(allJobs, weeks=4) {
+function jobsRangeWeeks() {
+  const el = document.getElementById('jobsRange');
+  return el ? parseInt(el.value, 10) : 4;
+}
+
+function recentJobs(allJobs, weeks) {
+  if (weeks === undefined) weeks = jobsRangeWeeks();
+  if (!weeks) return allJobs;  // 0 = all time
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - weeks * 7);
   return allJobs.filter(j => new Date(j.date) >= cutoff);
+}
+
+function rangeLabel() {
+  const w = jobsRangeWeeks();
+  if (!w) return '— all time';
+  if (w === 1) return '— last week';
+  return `— last ${w} weeks`;
+}
+
+function onJobsRangeChange() {
+  if (!jobsData) return;
+  document.getElementById('jobsFilterLabel').textContent = rangeLabel();
+  activeCompBin = null;
+  renderTopJobs(recentJobs(jobsData.top_jobs || []));
+}
+
+function onJobsHideChange() {
+  const hide = document.getElementById('jobsHide').checked;
+  document.getElementById('topJobsCard').style.display = hide ? 'none' : '';
 }
 
 function renderMatches(d) {
@@ -1139,7 +1181,7 @@ function filterJobsByBin() {
   const minScore = parseFloat(document.getElementById('scoreSlider').value);
   const label = document.getElementById('jobsFilterLabel');
   if (!activeCompBin) {
-    label.textContent = '';
+    label.textContent = rangeLabel();
     renderTopJobs(recentJobs(jobsData.top_jobs || []));
     return;
   }
