@@ -54,22 +54,22 @@ class LLMQueueClient:
     # Task push
     # ------------------------------------------------------------------
 
-    def push_task(self, topic: str, payload: dict, priority: int = 0) -> int:
+    def push_task(self, topic: str, payload: dict, priority: int = 0, model: str | None = None) -> int:
         """Push a single task onto the queue. Returns task_id."""
         conn = self._get_conn()
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO llm_queue.tasks (topic, payload, priority)
-                VALUES (%s, %s, %s)
+                INSERT INTO llm_queue.tasks (topic, payload, priority, model)
+                VALUES (%s, %s, %s, %s)
                 RETURNING id
                 """,
-                (topic, psycopg2.extras.Json(payload), priority),
+                (topic, psycopg2.extras.Json(payload), priority, model),
             )
             row = cur.fetchone()
         return row[0]
 
-    def push_batch(self, topic: str, payloads: list[dict], priority: int = 0) -> list[int]:
+    def push_batch(self, topic: str, payloads: list[dict], priority: int = 0, model: str | None = None) -> list[int]:
         """Push multiple tasks. Returns list of task_ids in the same order."""
         conn = self._get_conn()
         ids = []
@@ -77,11 +77,11 @@ class LLMQueueClient:
             for payload in payloads:
                 cur.execute(
                     """
-                    INSERT INTO llm_queue.tasks (topic, payload, priority)
-                    VALUES (%s, %s, %s)
+                    INSERT INTO llm_queue.tasks (topic, payload, priority, model)
+                    VALUES (%s, %s, %s, %s)
                     RETURNING id
                     """,
-                    (topic, psycopg2.extras.Json(payload), priority),
+                    (topic, psycopg2.extras.Json(payload), priority, model),
                 )
                 row = cur.fetchone()
                 ids.append(row[0])
