@@ -389,18 +389,20 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
     with get_db_engine().connect() as conn:
         existing = {row[0] for row in conn.execute(existing_query, {"profile": profile})}
 
-    # Done tasks from queue DB
+    # Done eval tasks plus the extract task they depend on (extract result holds salary).
     done_query = text("""
-        SELECT payload, result
-        FROM llm_queue.tasks
-        WHERE topic = :topic AND status = 'done'
-          AND payload->>'sys_profile' = :profile
+        SELECT eval.payload, eval.result, ext.result AS extract_result
+        FROM llm_queue.tasks eval
+        LEFT JOIN llm_queue.tasks ext
+          ON ext.id = ANY(eval.depends_on) AND ext.topic = 'job_extract'
+        WHERE eval.topic = :topic AND eval.status = 'done'
+          AND eval.payload->>'sys_profile' = :profile
     """)
     with get_queue_engine().connect() as conn:
         rows = conn.execute(done_query, {"topic": topic, "profile": profile}).fetchall()
 
     new_rows = [
-        (payload, result) for payload, result in rows
+        (payload, result, extract_result) for payload, result, extract_result in rows
         if payload.get("job_id") not in existing
     ]
 
@@ -412,7 +414,8 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
 
     result_rows = []
     written_ids = []
-    for payload, result in new_rows:
+    salary_updates = []
+    for payload, result, extract_result in new_rows:
         scores = result.get("match_scores", {})
         # Only average the 4 canonical keys — ignore any extra keys the model invented
         canonical = {k: v for k, v in scores.items() if k in CANONICAL_KEYS}
@@ -432,8 +435,38 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
         })
         written_ids.append(payload["job_id"])
 
+        # Salary backfill: only if extract pulled it AND the structured field is currently empty.
+        if isinstance(extract_result, dict):
+            sm = extract_result.get("salary_min")
+            sx = extract_result.get("salary_max")
+            si = extract_result.get("salary_interval")
+            sc = extract_result.get("salary_currency")
+            if isinstance(sm, (int, float)) and isinstance(sx, (int, float)) and sm > 0 and sx >= sm:
+                salary_updates.append({
+                    "job_id": payload["job_id"],
+                    "min_amount": str(int(sm)),
+                    "max_amount": str(int(sx)),
+                    "interval": si if si in ("yearly", "hourly") else None,
+                    "currency": sc if isinstance(sc, str) and len(sc) == 3 else None,
+                })
+
     write_to_db(pd.DataFrame(result_rows), "public", "evaluated_jobs")
     print(f"Wrote {len(result_rows)} results for {profile} to evaluated_jobs")
+
+    if salary_updates:
+        update_q = text("""
+            UPDATE public.jobspy_jobs
+            SET min_amount = :min_amount,
+                max_amount = :max_amount,
+                interval   = COALESCE(NULLIF(interval, ''), :interval),
+                currency   = COALESCE(NULLIF(currency, ''), :currency)
+            WHERE id = :job_id
+              AND (min_amount IS NULL OR min_amount = '')
+        """)
+        with get_db_engine().begin() as conn:
+            conn.execute(update_q, salary_updates)
+        print(f"Backfilled salary on {len(salary_updates)} jobs for {profile}")
+
     return written_ids
 
 
