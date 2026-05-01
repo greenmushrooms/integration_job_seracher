@@ -8,7 +8,7 @@ RUN apt-get update && \
 WORKDIR /opt/prefect
 
 RUN pip install --no-cache-dir \
-    "prefect>=3.4.24" \
+    "prefect==3.6.17" \
     pandas \
     requests \
     python-jobspy \

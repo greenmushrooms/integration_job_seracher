@@ -5,7 +5,7 @@ description = "Job search and processing flow with dbt"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "prefect>=3.4.24",
+    "prefect>=3.4.24,<=3.6.17",
     "pandas",
     "requests",
     "python-jobspy",
