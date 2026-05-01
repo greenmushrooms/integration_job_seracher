@@ -4,6 +4,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+from threading import Lock
 
 from dotenv import load_dotenv
 
@@ -17,6 +19,27 @@ app = Flask(__name__)
 DB_DSN = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 QUEUE_DSN = os.getenv("LLM_QUEUE_DSN")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+
+# Reuse one engine — create_engine uses an internal pool so connections are recycled.
+_db_engine = create_engine(DB_DSN, pool_pre_ping=True, pool_recycle=300)
+_queue_engine = create_engine(QUEUE_DSN, pool_pre_ping=True, pool_recycle=300) if QUEUE_DSN else None
+
+# Tiny TTL cache for the heavy /api/jobs and /api/insights calls.
+_cache: dict = {}
+_cache_lock = Lock()
+CACHE_TTL = 60  # seconds
+
+
+def cached(key: tuple, ttl: int, fn):
+    now = time.time()
+    with _cache_lock:
+        hit = _cache.get(key)
+        if hit and now - hit[0] < ttl:
+            return hit[1]
+    val = fn()
+    with _cache_lock:
+        _cache[key] = (now, val)
+    return val
 
 
 def gpu_stats():
@@ -58,8 +81,7 @@ def ollama_model():
 
 
 def queue_stats():
-    engine = create_engine(QUEUE_DSN)
-    with engine.connect() as conn:
+    with _queue_engine.connect() as conn:
         # All tasks active in the last 24h (use done_at if available, else created_at)
         rows = conn.execute(text("""
             SELECT topic, status, count(*)
@@ -90,8 +112,6 @@ def queue_stats():
               AND COALESCE(done_at, created_at) >= NOW() - INTERVAL '24 hours'
             GROUP BY 1, 2, 3
         """)).fetchall()
-
-    engine.dispose()
 
     topics = {}
     for topic, status, count in rows:
@@ -141,8 +161,7 @@ ELECTRICITY_RATE = 0.13  # $/kWh
 
 
 def cost_stats():
-    engine = create_engine(QUEUE_DSN)
-    with engine.connect() as conn:
+    with _queue_engine.connect() as conn:
         # All time totals — sum actual per-task durations
         alltime = conn.execute(text("""
             SELECT topic, count(*),
@@ -160,7 +179,6 @@ def cost_stats():
               AND COALESCE(done_at, created_at) >= NOW() - INTERVAL '24 hours'
             GROUP BY 1
         """)).fetchall()
-    engine.dispose()
 
     def calc(rows):
         counts = {r[0]: {"count": r[1], "gpu_sec": float(r[2] or 0)} for r in rows}
@@ -213,22 +231,25 @@ asyncio.run(main())
 
 def list_profiles():
     """Profiles with at least one evaluated job, ordered by recency."""
-    engine = create_engine(DB_DSN)
-    with engine.connect() as conn:
-        rows = conn.execute(text("""
-            SELECT sys_profile, COUNT(*) AS n, MAX(created_at) AS last_eval
-            FROM public.evaluated_jobs
-            WHERE sys_profile IS NOT NULL AND sys_profile <> ''
-            GROUP BY 1
-            ORDER BY last_eval DESC NULLS LAST
-        """)).fetchall()
-    engine.dispose()
-    return [r[0] for r in rows]
+    def _q():
+        with _db_engine.connect() as conn:
+            rows = conn.execute(text("""
+                SELECT sys_profile, COUNT(*) AS n, MAX(created_at) AS last_eval
+                FROM public.evaluated_jobs
+                WHERE sys_profile IS NOT NULL AND sys_profile <> ''
+                GROUP BY 1
+                ORDER BY last_eval DESC NULLS LAST
+            """)).fetchall()
+        return [r[0] for r in rows]
+    return cached(("profiles",), 300, _q)
 
 
 def jobs_stats(profile: str = "Slava"):
-    engine = create_engine(DB_DSN)
-    with engine.connect() as conn:
+    return cached(("jobs", profile), CACHE_TTL, lambda: _jobs_stats(profile))
+
+
+def _jobs_stats(profile: str):
+    with _db_engine.connect() as conn:
         weekly_matches = conn.execute(text("""
             SELECT
                 DATE_TRUNC('week', e.created_at)::date AS week,
@@ -236,26 +257,6 @@ def jobs_stats(profile: str = "Slava"):
                 COUNT(*) FILTER (WHERE e.avg_score >= 6.9) AS good_matches
             FROM public.evaluated_jobs e
             WHERE e.sys_profile = :profile
-              AND e.created_at >= NOW() - INTERVAL '13 weeks'
-            GROUP BY 1
-            ORDER BY 1
-        """), {"profile": profile}).fetchall()
-
-        weekly_comp = conn.execute(text("""
-            SELECT
-                DATE_TRUNC('week', e.created_at)::date AS week,
-                AVG((j.min_amount::numeric + j.max_amount::numeric) / 2.0) FILTER (WHERE e.avg_score >= 6.9) AS avg_comp_all,
-                AVG((j.min_amount::numeric + j.max_amount::numeric) / 2.0) FILTER (WHERE e.avg_score >= 8.0) AS avg_comp_top,
-                MAX((j.min_amount::numeric + j.max_amount::numeric) / 2.0) FILTER (WHERE e.avg_score >= 6.9) AS max_comp
-            FROM public.evaluated_jobs e
-            JOIN public.jobspy_jobs j ON e.job_id = j.id
-            WHERE e.sys_profile = :profile
-              AND e.avg_score >= 6.9
-              AND j.min_amount IS NOT NULL
-              AND j.max_amount IS NOT NULL
-              AND j.min_amount ~ '^[0-9]+(\\.[0-9]+)?$'
-              AND j.max_amount ~ '^[0-9]+(\\.[0-9]+)?$'
-              AND (j.interval = 'yearly' OR j.interval = 'hourly')
               AND e.created_at >= NOW() - INTERVAL '13 weeks'
             GROUP BY 1
             ORDER BY 1
@@ -304,22 +305,11 @@ def jobs_stats(profile: str = "Slava"):
             LIMIT 300
         """), {"profile": profile}).fetchall()
 
-    engine.dispose()
-
     def yearly(amount, interval):
         v = float(amount)
         return v * 2080 if interval == 'hourly' else v
 
     wm = [{"week": str(r[0]), "total": int(r[1]), "matches": int(r[2])} for r in weekly_matches]
-
-    wc = []
-    for r in weekly_comp:
-        wc.append({
-            "week": str(r[0]),
-            "avg_all": round(float(r[1])) if r[1] is not None else None,
-            "avg_top": round(float(r[2])) if r[2] is not None else None,
-            "max": round(float(r[3])) if r[3] is not None else None,
-        })
 
     comp_data = []
     for r in comp_jobs:
@@ -358,14 +348,18 @@ def jobs_stats(profile: str = "Slava"):
             "date": str(r[10]),
         })
 
-    return {"weekly_matches": wm, "weekly_comp": wc, "comp_data": comp_data, "top_jobs": jobs}
+    return {"weekly_matches": wm, "comp_data": comp_data, "top_jobs": jobs}
 
 
 def insights_stats(profile: str = "Slava", weeks: int = 12, match_threshold: float = 6.9):
+    return cached(("insights", profile, weeks, match_threshold), CACHE_TTL,
+                  lambda: _insights_stats(profile, weeks, match_threshold))
+
+
+def _insights_stats(profile: str, weeks: int, match_threshold: float):
     """Funnel + breakdowns for the matches dashboard. Single round-trip."""
-    engine = create_engine(DB_DSN)
     interval = f"{weeks} weeks"
-    with engine.connect() as conn:
+    with _db_engine.connect() as conn:
         # Funnel — bucket by date_posted week so all stages are comparable
         funnel = conn.execute(text(f"""
             WITH posted AS (
@@ -466,7 +460,6 @@ def insights_stats(profile: str = "Slava", weeks: int = 12, match_threshold: flo
               AND reasoning IS NOT NULL AND LEFT(reasoning, 1) = '{{'
             GROUP BY 1 ORDER BY n DESC
         """), {"profile": profile, "thr": match_threshold}).fetchall()
-    engine.dispose()
 
     def rate(num, den):
         return round(100 * num / den, 1) if den else 0.0
@@ -1107,13 +1100,31 @@ function updateCompHist() {
   const minScore = parseFloat(document.getElementById('scoreSlider').value);
   document.getElementById('sliderVal').textContent = minScore.toFixed(1);
 
+  const totalWithSalary = (jobsData.comp_data || []).length;
   const filtered = (jobsData.comp_data || []).filter(j => j.score >= minScore);
   document.getElementById('compCount').textContent = `(${filtered.length} jobs with salary data)`;
 
+  const canvas = document.getElementById('compHistChart');
+  // Surface an empty-state directly on the canvas container instead of leaving a blank box.
+  let emptyEl = document.getElementById('compHistEmpty');
+  if (!emptyEl) {
+    emptyEl = document.createElement('div');
+    emptyEl.id = 'compHistEmpty';
+    emptyEl.style.cssText = 'color:#8b949e;padding:24px;text-align:center;font-size:0.85em';
+    canvas.parentNode.insertBefore(emptyEl, canvas);
+  }
+
   if (!filtered.length) {
     if (compHistChartInst) { compHistChartInst.destroy(); compHistChartInst = null; }
+    canvas.style.display = 'none';
+    emptyEl.style.display = '';
+    emptyEl.textContent = totalWithSalary === 0
+      ? 'No matched jobs in this profile have salary disclosed yet.'
+      : `No matched jobs with score ≥${minScore.toFixed(1)} have salary data.`;
     return;
   }
+  canvas.style.display = '';
+  emptyEl.style.display = 'none';
 
   const binSize = 10000;
   const vals = filtered.map(j => j.mid);
