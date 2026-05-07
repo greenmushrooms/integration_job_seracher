@@ -232,17 +232,16 @@ def _is_blocked(title: str, blocklist: list[str], threshold: int = 85) -> bool:
 
 
 def load_jobs(profile: str, limit: int = 3, hours: int = 72) -> pd.DataFrame:
+    # jobs_for_extract is the dbt silver view: bronze rows from the last 7 days,
+    # deduped per (sys_profile, normalized_description), with already-evaluated
+    # rows filtered out. We still apply a tighter freshness cap here.
     query = text("""
         SELECT j.id, j.description, j.title, j.company,
                COALESCE(c.blocklist, '{}'::text[]) AS blocklist
-        FROM public.jobspy_jobs j
+        FROM public.jobs_for_extract j
         LEFT JOIN adm.job_search_config c ON c.profile = j.sys_profile
         WHERE j.sys_profile = :profile
           AND j.date_posted >= CURRENT_DATE - MAKE_INTERVAL(hours => :hours)
-          AND NOT EXISTS (
-              SELECT 1 FROM public.evaluated_jobs e
-              WHERE e.job_id = j.id
-          )
         ORDER BY j.id DESC
         LIMIT :limit
     """)
