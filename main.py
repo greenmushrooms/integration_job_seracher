@@ -1,7 +1,5 @@
-import hashlib
 import json
 import os
-import re
 from datetime import datetime, timedelta
 
 from rapidfuzz import fuzz
@@ -337,15 +335,6 @@ def send_telegram_notifications(region_jobs, run_name: str, chat_id: str, profil
 # Queue helpers
 # ---------------------------------------------------------------------------
 
-_WS_RE = re.compile(r"\s+")
-
-
-def _content_hash(description: str) -> str:
-    """Stable hash of a job description, robust to whitespace/case noise."""
-    norm = _WS_RE.sub(" ", (description or "")).strip().lower()
-    return hashlib.sha1(norm.encode("utf-8")).hexdigest()
-
-
 def _push_profile_to_queue(
     profile: str, resume: str, jobs_df: pd.DataFrame, run_name: str
 ) -> int:
@@ -359,39 +348,6 @@ def _push_profile_to_queue(
     dsn = os.getenv("LLM_QUEUE_DSN")
     worker_url = os.getenv("LLM_QUEUE_WORKER_URL")
 
-    # Same description re-posted under a different job_id (recruiter spam from a
-    # single agency) would otherwise sneak through. Drop within-batch dupes,
-    # then drop anything we already pushed for this profile in the last 7 days.
-    if not jobs_df.empty:
-        jobs_df = jobs_df.assign(
-            _content_hash=jobs_df["description"].fillna("").map(_content_hash)
-        )
-        before = len(jobs_df)
-        jobs_df = jobs_df.drop_duplicates(subset="_content_hash", keep="first")
-        intra = before - len(jobs_df)
-        if intra:
-            print(f"Skipped {intra} within-batch content dupes for {profile}")
-
-        hashes = jobs_df["_content_hash"].tolist()
-        if hashes:
-            with get_queue_engine().connect() as qc:
-                seen = {
-                    row[0] for row in qc.execute(
-                        text("""
-                            SELECT payload->>'content_hash'
-                            FROM llm_queue.tasks
-                            WHERE topic = 'job_extract'
-                              AND payload->>'sys_profile' = :profile
-                              AND payload->>'content_hash' = ANY(:hashes)
-                              AND created_at >= now() - INTERVAL '7 days'
-                        """),
-                        {"profile": profile, "hashes": hashes},
-                    )
-                }
-            if seen:
-                jobs_df = jobs_df[~jobs_df["_content_hash"].isin(seen)]
-                print(f"Skipped {len(seen)} 7-day content dupes for {profile}")
-
     payloads = [
         {
             "job_id": str(job.get("id")),
@@ -400,7 +356,6 @@ def _push_profile_to_queue(
             "sys_profile": profile,
             "sys_run_name": run_name,
             "pack_id": run_name,
-            "content_hash": job.get("_content_hash") or _content_hash(job.get("description", "")),
             "inputs": {
                 "description": job.get("description", ""),
             },
