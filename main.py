@@ -48,6 +48,19 @@ Job: {"title": "Business Systems Analyst", "summary": "Gather requirements from 
 Example 3 — Step Up:
 Job: {"title": "Lead Business Analyst / Product Owner", "summary": "Lead a team of BAs, own the product backlog, drive roadmap decisions with C-suite stakeholders, accountable for delivery across multiple workstreams."}
 {"verdict": "Step Up", "match_scores": {"skills_match": 8, "career_level_alignment": 9, "experience_relevance": 8, "culture_fit": 7}, "job_in_one_line": "Lead BA/PO role with team ownership and executive stakeholder management", "why_you_fit": "Strong BA foundation with Agile and SDLC experience positions well for team lead ownership", "key_gap": "Managing a team of BAs and C-suite accountability is a meaningful stretch beyond current scope"}""",
+
+    "Cait": """
+Example 1 — Pivot:
+Job: {"title": "Frontend Developer", "summary": "Build React/TypeScript user interfaces, write unit tests, work with designers on component libraries. Requires 3+ years hands-on coding experience in modern JS frameworks."}
+{"verdict": "Pivot", "match_scores": {"skills_match": 2, "career_level_alignment": 4, "experience_relevance": 2, "culture_fit": 4}, "job_in_one_line": "Hands-on frontend engineering role in React/TypeScript", "why_you_fit": "No relevant overlap — career is implementation/delivery leadership, not hands-on app development", "key_gap": "Role requires production frontend coding experience that is not part of background"}
+
+Example 2 — Lateral:
+Job: {"title": "Senior Implementation Consultant", "summary": "Lead end-to-end software implementations for enterprise clients. Drive requirements gathering, configuration design, system integrations, training, and stakeholder management across concurrent projects."}
+{"verdict": "Lateral", "match_scores": {"skills_match": 9, "career_level_alignment": 8, "experience_relevance": 9, "culture_fit": 8}, "job_in_one_line": "Senior implementation consultant owning end-to-end enterprise software delivery", "why_you_fit": "Direct match — current role at Trapeze covers the same scope: requirements, configuration, integration, training, stakeholder management", "key_gap": "Same seniority level — meaningful step up only if scope or domain expands"}
+
+Example 3 — Step Up:
+Job: {"title": "Implementation Manager / Delivery Lead", "summary": "Manage a team of implementation consultants, own delivery across a portfolio of enterprise clients, accountable to executives for revenue retention, P&L impact, and process maturity."}
+{"verdict": "Step Up", "match_scores": {"skills_match": 8, "career_level_alignment": 9, "experience_relevance": 8, "culture_fit": 7}, "job_in_one_line": "People-leadership role owning a portfolio of implementations and executive accountability", "why_you_fit": "Senior implementation track record with cross-functional leadership and escalation ownership maps directly to a delivery lead role", "key_gap": "Direct people management and P&L ownership is a stretch beyond current individual-contributor senior scope"}""",
 }
 
 def build_eval_prompt(profile: str) -> str:
@@ -347,6 +360,28 @@ def _push_profile_to_queue(
     dsn = os.getenv("LLM_QUEUE_DSN")
     worker_url = os.getenv("LLM_QUEUE_WORKER_URL")
 
+    # Skip job_ids already in flight for this profile (pending/processing on either
+    # extract or eval) — avoids re-queuing when a prior run hasn't drained yet.
+    job_ids = [str(j.get("id")) for _, j in jobs_df.iterrows()]
+    if job_ids:
+        with get_queue_engine().connect() as qc:
+            in_flight = {
+                row[0] for row in qc.execute(
+                    text("""
+                        SELECT payload->>'job_id'
+                        FROM llm_queue.tasks
+                        WHERE topic IN ('job_extract','job_eval')
+                          AND status IN ('pending','processing')
+                          AND payload->>'sys_profile' = :profile
+                          AND payload->>'job_id' = ANY(:ids)
+                    """),
+                    {"profile": profile, "ids": job_ids},
+                )
+            }
+        if in_flight:
+            jobs_df = jobs_df[~jobs_df["id"].astype(str).isin(in_flight)]
+            print(f"Skipped {len(in_flight)} already in-flight jobs for {profile}")
+
     payloads = [
         {
             "job_id": str(job.get("id")),
@@ -441,13 +476,22 @@ def _drain_queue_results(profile: str, run_name: str) -> list[str]:
             si = extract_result.get("salary_interval")
             sc = extract_result.get("salary_currency")
             if isinstance(sm, (int, float)) and isinstance(sx, (int, float)) and sm > 0 and sx >= sm:
-                salary_updates.append({
-                    "job_id": payload["job_id"],
-                    "min_amount": str(int(sm)),
-                    "max_amount": str(int(sx)),
-                    "interval": si if si in ("yearly", "hourly") else None,
-                    "currency": sc if isinstance(sc, str) and len(sc) == 3 else None,
-                })
+                interval = si if si in ("yearly", "hourly") else None
+                # Sanity ranges — reject extracts where the model misread the unit
+                # (e.g. hourly rate stored as yearly, or annual figure tagged hourly).
+                plausible = (
+                    (interval == "yearly" and 10_000 <= sm and sx <= 700_000)
+                    or (interval == "hourly" and 5 <= sm and sx <= 300)
+                    or (interval is None and 10_000 <= sm and sx <= 700_000)
+                )
+                if plausible:
+                    salary_updates.append({
+                        "job_id": payload["job_id"],
+                        "min_amount": str(int(sm)),
+                        "max_amount": str(int(sx)),
+                        "interval": interval,
+                        "currency": sc if isinstance(sc, str) and len(sc) == 3 else None,
+                    })
 
     write_to_db(pd.DataFrame(result_rows), "public", "evaluated_jobs")
     print(f"Wrote {len(result_rows)} results for {profile} to evaluated_jobs")

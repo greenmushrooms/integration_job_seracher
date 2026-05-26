@@ -129,6 +129,14 @@ def queue_stats():
         key = topic + "_" + ("done" if status == "done" else "pending")
         p[key] = p.get(key, 0) + count
 
+    # Always include every known profile (even ones with no queue activity in
+    # the last 24h) so Kezia/Ray still render with zeros instead of vanishing.
+    try:
+        for name in list_profiles():
+            profiles.setdefault(name, {})
+    except Exception:
+        pass
+
     result = {}
     for topic in ("job_extract", "job_eval"):
         s = topics.get(topic, {})
@@ -536,6 +544,268 @@ def api_status():
         "processing": procs, "profiles": profiles, "schedule": schedule,
         "costs": costs,
     })
+
+
+# ── External-LLM API (v1) ─────────────────────────────────────────────────────
+# Read-mostly endpoints so another LLM on the LAN can pull good jobs and
+# write back application status. No auth — LAN-only.
+
+ALLOWED_APP_STATUSES = {"applied", "skipped", "interview"}
+
+JOB_SELECT_SQL = """
+    SELECT
+        j.id, j.title, j.company, j.location, j.is_remote,
+        j.date_posted::text,
+        COALESCE(j.job_url_direct, j.job_url) AS url,
+        j.description,
+        j.min_amount, j.max_amount, j.interval, j.currency,
+        e.avg_score, e.reasoning, e.created_at::text AS eval_date,
+        e.sys_profile, j.sys_country,
+        a.status, a.notes, a.updated_at::text AS application_updated_at
+    FROM public.evaluated_jobs e
+    JOIN public.jobspy_jobs j ON e.job_id = j.id
+    LEFT JOIN public.applications a
+           ON a.job_id = j.id AND a.sys_profile = e.sys_profile
+"""
+
+
+def _row_to_job(r):
+    try:
+        reasoning = json.loads(r[13]) if r[13] else {}
+    except Exception:
+        reasoning = {}
+    comp = None
+    if r[8] and r[9]:
+        comp = {"min": r[8], "max": r[9], "interval": r[10], "currency": r[11]}
+    application = None
+    if r[17] is not None:
+        application = {"status": r[17], "notes": r[18], "updated_at": r[19]}
+    return {
+        "id": r[0],
+        "title": r[1],
+        "company": r[2],
+        "location": r[3],
+        "is_remote": r[4],
+        "date_posted": r[5],
+        "url": r[6],
+        "description": r[7],
+        "compensation": comp,
+        "score": float(r[12]) if r[12] is not None else None,
+        "reasoning": reasoning,
+        "eval_date": r[14],
+        "profile": r[15],
+        "country": r[16],
+        "application": application,
+    }
+
+
+def _date_clauses(params, from_date, to_date, date_field):
+    """Add ISO date-range filters to params and return WHERE-fragment list."""
+    col = "e.created_at::date" if date_field == "eval" else "j.date_posted"
+    frags = []
+    if from_date:
+        frags.append(f"{col} >= :from_date")
+        params["from_date"] = from_date
+    if to_date:
+        frags.append(f"{col} <= :to_date")
+        params["to_date"] = to_date
+    return frags
+
+
+@app.route("/api/v1/jobs")
+def api_v1_jobs_list():
+    from flask import request
+    profile = request.args.get("profile", "Slava")
+    try:
+        min_score = float(request.args.get("min_score", "6.9"))
+        limit = min(max(int(request.args.get("limit", "50")), 1), 200)
+        offset = max(int(request.args.get("offset", "0")), 0)
+    except ValueError:
+        return jsonify({"error": "invalid numeric parameter"}), 400
+    date_field = request.args.get("date_field", "eval")
+    if date_field not in ("eval", "posted"):
+        return jsonify({"error": "date_field must be 'eval' or 'posted'"}), 400
+    clauses = ["e.sys_profile = :profile", "e.avg_score >= :min_score"]
+    params = {"profile": profile, "min_score": min_score, "limit": limit, "offset": offset}
+    clauses += _date_clauses(params, request.args.get("from"), request.args.get("to"), date_field)
+    sql = JOB_SELECT_SQL + " WHERE " + " AND ".join(clauses) + """
+        ORDER BY e.avg_score DESC, e.created_at DESC
+        LIMIT :limit OFFSET :offset
+    """
+    try:
+        with _db_engine.connect() as conn:
+            rows = conn.execute(text(sql), params).fetchall()
+        return jsonify({"jobs": [_row_to_job(r) for r in rows], "count": len(rows)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/v1/jobs/search")
+def api_v1_jobs_search():
+    from flask import request
+    profile = request.args.get("profile", "Slava")
+    try:
+        min_score = float(request.args.get("min_score", "6.9"))
+        limit = min(max(int(request.args.get("limit", "50")), 1), 200)
+    except ValueError:
+        return jsonify({"error": "invalid numeric parameter"}), 400
+    date_field = request.args.get("date_field", "eval")
+    if date_field not in ("eval", "posted"):
+        return jsonify({"error": "date_field must be 'eval' or 'posted'"}), 400
+    q = request.args.get("q")
+    location = request.args.get("location")
+    company = request.args.get("company")
+    clauses = ["e.sys_profile = :profile", "e.avg_score >= :min_score"]
+    params = {"profile": profile, "min_score": min_score, "limit": limit}
+    if q:
+        clauses.append("(j.title ILIKE :q OR j.company ILIKE :q OR j.description ILIKE :q)")
+        params["q"] = f"%{q}%"
+    if location:
+        clauses.append("j.location ILIKE :loc")
+        params["loc"] = f"%{location}%"
+    if company:
+        clauses.append("j.company ILIKE :company")
+        params["company"] = f"%{company}%"
+    clauses += _date_clauses(params, request.args.get("from"), request.args.get("to"), date_field)
+    sql = JOB_SELECT_SQL + " WHERE " + " AND ".join(clauses) + \
+        " ORDER BY e.avg_score DESC, e.created_at DESC LIMIT :limit"
+    try:
+        with _db_engine.connect() as conn:
+            rows = conn.execute(text(sql), params).fetchall()
+        return jsonify({"jobs": [_row_to_job(r) for r in rows], "count": len(rows)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/v1/about")
+def api_v1_about():
+    try:
+        profiles = list_profiles()
+    except Exception:
+        profiles = []
+    return jsonify({
+        "name": "job_searcher_2",
+        "version": "1",
+        "description": (
+            "Read 'good' jobs (avg_score >= 6.9 by default) and track application "
+            "status. Jobs are scraped via JobSpy and scored by an LLM evaluator; "
+            "this API exposes the evaluated set and a per-profile applications log."
+        ),
+        "profiles": profiles,
+        "default_min_score": 6.9,
+        "application_statuses": sorted(ALLOWED_APP_STATUSES),
+        "date_fields": {
+            "eval": "evaluated_jobs.created_at — when our pipeline added the job to the good list",
+            "posted": "jobspy_jobs.date_posted — when the job listing was originally posted",
+        },
+        "endpoints": [
+            {
+                "method": "GET", "path": "/api/v1/jobs",
+                "description": "List good jobs for a profile, newest+highest-score first.",
+                "params": {
+                    "profile": "string, default 'Slava'",
+                    "min_score": "float, default 6.9",
+                    "from": "ISO date YYYY-MM-DD, optional",
+                    "to": "ISO date YYYY-MM-DD, optional",
+                    "date_field": "'eval' (default) or 'posted' — which date column from/to filter",
+                    "limit": "int 1-200, default 50",
+                    "offset": "int >= 0, default 0",
+                },
+            },
+            {
+                "method": "GET", "path": "/api/v1/jobs/search",
+                "description": "Same as /api/v1/jobs but with text/company/location filters.",
+                "params": {
+                    "profile": "string, default 'Slava'",
+                    "min_score": "float, default 6.9",
+                    "q": "ILIKE match across title, company, description",
+                    "location": "ILIKE on location",
+                    "company": "ILIKE on company",
+                    "from": "ISO date, optional",
+                    "to": "ISO date, optional",
+                    "date_field": "'eval' (default) or 'posted'",
+                    "limit": "int 1-200, default 50",
+                },
+            },
+            {
+                "method": "GET", "path": "/api/v1/jobs/<id>",
+                "description": "Fetch one job by id (latest evaluation row).",
+            },
+            {
+                "method": "POST", "path": "/api/v1/jobs/<id>/status",
+                "description": "Upsert application status for (job_id, profile).",
+                "body": {
+                    "status": f"one of {sorted(ALLOWED_APP_STATUSES)}",
+                    "notes": "string, optional",
+                    "profile": "string, default 'Slava'",
+                },
+            },
+            {
+                "method": "GET", "path": "/api/v1/about",
+                "description": "This descriptor.",
+            },
+        ],
+        "job_schema": {
+            "id": "string (jobspy job id, e.g. 'li-4377872458')",
+            "title": "string",
+            "company": "string",
+            "location": "string",
+            "is_remote": "bool",
+            "date_posted": "ISO date string",
+            "url": "string — job_url_direct if available, else job_url",
+            "description": "string (full text, may be long)",
+            "compensation": "{min, max, interval, currency} or null",
+            "score": "float — avg_score from LLM evaluator (1-10)",
+            "reasoning": "object — verdict, summary, comparisons, tech_stack, …",
+            "eval_date": "ISO datetime — when we added it to the good list",
+            "profile": "string — which profile scored it",
+            "country": "string — scrape country",
+            "application": "{status, notes, updated_at} or null if not yet acted on",
+        },
+    })
+
+
+@app.route("/api/v1/jobs/<job_id>")
+def api_v1_jobs_get(job_id):
+    sql = JOB_SELECT_SQL + " WHERE j.id = :id ORDER BY e.created_at DESC LIMIT 1"
+    try:
+        with _db_engine.connect() as conn:
+            r = conn.execute(text(sql), {"id": job_id}).fetchone()
+        if not r:
+            return jsonify({"error": "not found"}), 404
+        return jsonify(_row_to_job(r))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/v1/jobs/<job_id>/status", methods=["POST"])
+def api_v1_jobs_set_status(job_id):
+    from flask import request
+    body = request.get_json(silent=True) or {}
+    status = body.get("status")
+    notes = body.get("notes")
+    profile = body.get("profile", "Slava")
+    if status not in ALLOWED_APP_STATUSES:
+        return jsonify({"error": f"status must be one of {sorted(ALLOWED_APP_STATUSES)}"}), 400
+    try:
+        with _db_engine.begin() as conn:
+            exists = conn.execute(
+                text("SELECT 1 FROM public.jobspy_jobs WHERE id = :id"),
+                {"id": job_id},
+            ).fetchone()
+            if not exists:
+                return jsonify({"error": "job not found"}), 404
+            conn.execute(text("""
+                INSERT INTO public.applications (job_id, sys_profile, status, notes, updated_at)
+                VALUES (:job_id, :profile, :status, :notes, NOW())
+                ON CONFLICT (job_id, sys_profile) DO UPDATE
+                SET status = EXCLUDED.status,
+                    notes  = EXCLUDED.notes,
+                    updated_at = NOW()
+            """), {"job_id": job_id, "profile": profile, "status": status, "notes": notes})
+        return jsonify({"ok": True, "job_id": job_id, "profile": profile, "status": status})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 HTML = """<!DOCTYPE html>
