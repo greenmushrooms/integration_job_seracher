@@ -25,22 +25,21 @@ def load_jobs_flow_cait():
 
     config = configs[0]
     profile = config["profile"]
-    print(f"Running for {profile}: {config['titles']} x {config['locations']} ({config['searches']})")
+    print(f"Running for {profile}: {len(config['entries'])} search entries")
 
-    for title in config["titles"]:
-        for location in config["locations"]:
-            find_and_process(
-                title=title,
-                location=location,
-                profile=profile,
-                searches=config["searches"],
-            )
+    for entry in config["entries"]:
+        find_and_process(
+            title=entry["title"],
+            location=entry["location"],
+            profile=profile,
+            searches=entry["searches"],
+        )
 
     run_dbt()
 
     run_name = runtime.flow_run.name
     resume, _ = load_resume(profile)
-    cap = len(config["titles"]) * len(config["locations"]) * config["searches"] * 2
+    cap = sum(e["searches"] for e in config["entries"]) * 2
     jobs_df = load_jobs(profile, limit=cap)
 
     if jobs_df.empty:

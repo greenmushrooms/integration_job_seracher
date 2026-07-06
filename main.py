@@ -188,18 +188,25 @@ def _country_for_location(location: str) -> str:
 # ---------------------------------------------------------------------------
 
 def load_search_configs() -> list[dict]:
-    """Return search config for all active profiles from adm.job_search_config."""
+    """Return search entries for all active profiles from adm.job_searches.
+
+    One dict per profile: {"profile": ..., "entries": [{"title", "location",
+    "searches"}, ...]} — each entry is one scrape. The web app's /settings page
+    edits these rows (via web.job_searches + the box-db-sync morning pull).
+    """
     query = text("""
-        SELECT c.profile, c.titles, c.locations, c.searches
-        FROM adm.job_search_config c
-        JOIN adm.resume r ON r.profile = c.profile AND r.is_active = TRUE
+        SELECT s.profile, s.title, s.location, s.searches
+        FROM adm.job_searches s
+        JOIN adm.resume r ON r.profile = s.profile AND r.is_active = TRUE
+        ORDER BY s.profile, s.sort_order
     """)
     with get_db_engine().connect() as conn:
         rows = conn.execute(query).fetchall()
-    return [
-        {"profile": r[0], "titles": r[1], "locations": r[2], "searches": r[3]}
-        for r in rows
-    ]
+    configs: dict[str, dict] = {}
+    for profile, title, location, searches in rows:
+        cfg = configs.setdefault(profile, {"profile": profile, "entries": []})
+        cfg["entries"].append({"title": title, "location": location, "searches": searches})
+    return list(configs.values())
 
 
 def load_resume(profile: str) -> tuple[str, str]:
@@ -586,14 +593,13 @@ def load_jobs_flow():
     print(f"Running for {len(configs)} profiles: {[c['profile'] for c in configs]}")
 
     for config in configs:
-        for title in config["titles"]:
-            for location in config["locations"]:
-                find_and_process(
-                    title=title,
-                    location=location,
-                    profile=config["profile"],
-                    searches=config["searches"],
-                )
+        for entry in config["entries"]:
+            find_and_process(
+                title=entry["title"],
+                location=entry["location"],
+                profile=config["profile"],
+                searches=entry["searches"],
+            )
 
     run_dbt()
 
@@ -601,7 +607,7 @@ def load_jobs_flow():
     for config in configs:
         profile = config["profile"]
         resume, _ = load_resume(profile)
-        cap = len(config["titles"]) * len(config["locations"]) * config["searches"] * 2
+        cap = sum(e["searches"] for e in config["entries"]) * 2
         jobs_df = load_jobs(profile, limit=cap)
 
         if jobs_df.empty:
