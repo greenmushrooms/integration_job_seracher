@@ -634,14 +634,22 @@ def notify_matches_flow(min_score: float = 6.9):
         print(f"Drained {len(written)} new results for {profile}")
 
         jobs = _get_top_jobs_for_profile(profile=profile, min_score=min_score)
-        chat_id = load_telegram_chat_id(profile)
 
-        if jobs:
-            job_ids = [job[7] for _, job in jobs]
-            send_telegram_notifications(jobs, run_name, chat_id, profile, total_evaluated=len(written))
-            _mark_jobs_notified(job_ids)
-        else:
+        if not jobs:
             print(f"No qualifying jobs (>= {min_score}) for {profile} ({len(written)} evaluated)")
+            continue
+
+        # Telegram is optional: web-onboarded profiles (no chat id) still get
+        # scraped/evaluated — their matches just live in the web inbox.
+        try:
+            chat_id = load_telegram_chat_id(profile)
+        except ValueError:
+            print(f"{profile}: no telegram chat id — {len(jobs)} matches stay in the web inbox")
+            continue
+
+        job_ids = [job[7] for _, job in jobs]
+        send_telegram_notifications(jobs, run_name, chat_id, profile, total_evaluated=len(written))
+        _mark_jobs_notified(job_ids)
 
 
 # ---------------------------------------------------------------------------
