@@ -22,6 +22,41 @@ USE_QUEUE = os.getenv("USE_QUEUE", "false").lower() == "true"
 # Profile-specific fewshot eval prompt builder (v3_fewshot variant)
 # ---------------------------------------------------------------------------
 
+# Fallback for any profile without hand-calibrated examples — every user who
+# onboards through the web app lands here (their adm.resume row is created by
+# box-db-sync, not by us). Without this they got an EMPTY examples block and
+# uncalibrated verdicts.
+#
+# It can't anchor on a real field or seniority the way the per-profile sets do,
+# so it does the next best thing: one worked example per verdict for a clearly
+# labelled hypothetical candidate, with the reasoning stated RELATIVE to that
+# candidate's own level. The header tells the model to lift the pattern, not the
+# domain. Replace with a per-profile entry above once someone's résumé is known.
+_DEFAULT_FEWSHOT = """
+The four verdicts are judged RELATIVE TO THE CANDIDATE: their field, their current
+title, their years of experience. The worked examples below use a HYPOTHETICAL
+candidate in an unrelated field — copy their reasoning pattern and score ranges,
+never their background. The real candidate is the one under "Candidate:".
+
+Hypothetical candidate: 8 years in mechanical design, currently a Senior Design
+Engineer who owns projects end to end and mentors juniors.
+
+Example 1 — Pivot (different function; almost nothing transfers):
+Job: {"title": "Licensed Practical Nurse", "summary": "Provide direct patient care in a long-term care facility. Requires an active nursing licence."}
+{"verdict": "Pivot", "match_scores": {"skills_match": 1, "career_level_alignment": 3, "experience_relevance": 1, "culture_fit": 4}, "job_in_one_line": "Front-line nursing role in long-term care", "why_you_fit": "No meaningful overlap with an engineering background", "key_gap": "Different profession entirely — requires a nursing licence the candidate does not hold"}
+
+Example 2 — Title Regression (skills genuinely match, but the role sits below their level):
+Job: {"title": "Junior Design Engineer", "summary": "Entry-level role supporting the design team on well-defined tasks under close supervision. 0-2 years experience."}
+{"verdict": "Title Regression", "match_scores": {"skills_match": 9, "career_level_alignment": 3, "experience_relevance": 8, "culture_fit": 6}, "job_in_one_line": "Entry-level design engineering role on a supervised team", "why_you_fit": "The core craft is a direct match — this is the work they already do", "key_gap": "Pitched at 0-2 years under supervision; under-utilizes 8 years and current ownership"}
+
+Example 3 — Lateral (same craft, same level, no career step):
+Job: {"title": "Senior Design Engineer", "summary": "Own mechanical design projects end to end, review junior work, partner with manufacturing on tolerancing and production readiness."}
+{"verdict": "Lateral", "match_scores": {"skills_match": 9, "career_level_alignment": 7, "experience_relevance": 9, "culture_fit": 7}, "job_in_one_line": "Senior mechanical design role owning projects end to end", "why_you_fit": "Direct match — same scope, same craft, same mentoring expectations as the current role", "key_gap": "Same seniority; a step only if the domain or scope is bigger than it looks"}
+
+Example 4 — Step Up (a real stretch in scope, level, or accountability):
+Job: {"title": "Engineering Manager, Mechanical", "summary": "Lead a team of 6 design engineers, own the roadmap for a product line, accountable to executives for schedule and budget."}
+{"verdict": "Step Up", "match_scores": {"skills_match": 8, "career_level_alignment": 9, "experience_relevance": 8, "culture_fit": 7}, "job_in_one_line": "People-leadership role owning a product line and its engineering team", "why_you_fit": "End-to-end ownership and mentoring are the natural foundation for managing a design team", "key_gap": "Formal people management and budget accountability go beyond current individual-contributor scope"}"""
+
 _FEWSHOT_EXAMPLES = {
     "Slava": """
 Example 1 — Pivot:
@@ -69,7 +104,7 @@ def build_eval_prompt(profile: str) -> str:
     Uses {{placeholder}} syntax for Go router variable substitution.
     Examples are embedded inline — no Python .format() so no brace escaping needed.
     """
-    examples = _FEWSHOT_EXAMPLES.get(profile, "")
+    examples = _FEWSHOT_EXAMPLES.get(profile) or _DEFAULT_FEWSHOT
     return (
         "You are an honest career advisor.\n\n"
         + examples
@@ -207,6 +242,20 @@ def load_search_configs() -> list[dict]:
         cfg = configs.setdefault(profile, {"profile": profile, "entries": []})
         cfg["entries"].append({"title": title, "location": location, "searches": searches})
     return list(configs.values())
+
+
+def load_notify_thresholds() -> dict[str, float]:
+    """Per-profile Telegram alert thresholds (adm.job_search_config.notify_min_score).
+
+    Profiles absent from the result use notify_matches_flow's min_score param.
+    """
+    query = text("""
+        SELECT profile, notify_min_score
+        FROM adm.job_search_config
+        WHERE notify_min_score IS NOT NULL
+    """)
+    with get_db_engine().connect() as conn:
+        return {profile: score for profile, score in conn.execute(query)}
 
 
 def load_resume(profile: str) -> tuple[str, str]:
@@ -622,8 +671,12 @@ def notify_matches_flow(min_score: float = 6.9):
     """
     Drain LLM queue results for ALL active profiles and send Telegram alerts.
     Schedule: 8 AM Toronto — after overnight queue processing.
+
+    min_score is the default threshold; adm.job_search_config.notify_min_score
+    overrides it per profile.
     """
     configs = load_search_configs()
+    thresholds = load_notify_thresholds()
     run_name = runtime.flow_run.name
 
     for config in configs:
@@ -633,10 +686,11 @@ def notify_matches_flow(min_score: float = 6.9):
         written = _drain_queue_results(profile, run_name)
         print(f"Drained {len(written)} new results for {profile}")
 
-        jobs = _get_top_jobs_for_profile(profile=profile, min_score=min_score)
+        profile_min = thresholds.get(profile, min_score)
+        jobs = _get_top_jobs_for_profile(profile=profile, min_score=profile_min)
 
         if not jobs:
-            print(f"No qualifying jobs (>= {min_score}) for {profile} ({len(written)} evaluated)")
+            print(f"No qualifying jobs (>= {profile_min}) for {profile} ({len(written)} evaluated)")
             continue
 
         # Telegram is optional: web-onboarded profiles (no chat id) still get
